@@ -475,6 +475,37 @@
     font-family: var(--mono);
   }
 
+  .yaml-toggle {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    cursor: pointer;
+    margin-top: 18px;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .yaml-toggle:hover { border-color: var(--amber); color: var(--amber); }
+  .yaml-panel { margin-top: 14px; }
+  .btn-download {
+    flex: 1;
+    background: var(--teal);
+    color: #0d1512;
+    border: none;
+    border-radius: 8px;
+    padding: 13px 16px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .btn-download:hover { background: #62c2b8; }
+  .btn-download:active { transform: scale(0.98); }
+
   footer {
     text-align: center;
     padding: 30px 24px 50px;
@@ -689,6 +720,23 @@
       <span class="save-hint" id="saveHint"></span>
     </div>
     <div class="readiness-note" id="readinessNote"></div>
+
+    <button class="yaml-toggle" id="toggleYamlBtn">+ Generate publish workflow (.yml)</button>
+    <div class="yaml-panel" id="yamlPanel" style="display:none">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="fname">deploy-pages.yml</div>
+          <div style="width:40px"></div>
+        </div>
+        <div class="terminal-body" id="yamlOutput"></div>
+      </div>
+      <div class="copy-bar">
+        <button class="btn-copy" id="copyYamlBtn">Copy YAML</button>
+        <button class="btn-download" id="downloadYamlBtn">Download .yml</button>
+      </div>
+      <div class="readiness-note">Same workflow works for every PWA repo — it just reads the site root folder you picked above. Upload it to <code style="color:var(--amber)">.github/workflows/deploy-pages.yml</code> and set Pages source to GitHub Actions once per repo.</div>
+    </div>
   </aside>
 </div>
 
@@ -718,6 +766,11 @@
     historyEmpty: document.getElementById('historyEmpty'),
     saveHistoryBtn: document.getElementById('saveHistoryBtn'),
     saveHint: document.getElementById('saveHint'),
+    toggleYamlBtn: document.getElementById('toggleYamlBtn'),
+    yamlPanel: document.getElementById('yamlPanel'),
+    yamlOutput: document.getElementById('yamlOutput'),
+    copyYamlBtn: document.getElementById('copyYamlBtn'),
+    downloadYamlBtn: document.getElementById('downloadYamlBtn'),
   };
 
   let currentProjectId = null;
@@ -947,6 +1000,103 @@ Then generate the files.`;
         els.historyList.appendChild(card);
       });
   }
+
+  function buildWorkflowYaml() {
+    const isRoot = els.siteRoot.value === '(repo root)';
+    const folder = isRoot ? '.' : els.siteRoot.value.replace(/\/$/, '');
+    const pathsBlock = isRoot ? '' : `    paths:\n      - "${folder}/**"\n`;
+    return `name: Deploy to Pages
+
+on:
+  push:
+    branches: [main]
+${pathsBlock}  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: \${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "${folder}"
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+`;
+  }
+
+  function renderYaml() {
+    const raw = buildWorkflowYaml();
+    const html = raw
+      .split('\n')
+      .map(line => {
+        const m = line.match(/^(\s*)([a-zA-Z_-]+):(.*)$/);
+        if (m) return `${m[1]}<span class="lbl">${esc(m[2])}:</span>${esc(m[3])}`;
+        return esc(line);
+      })
+      .join('\n');
+    els.yamlOutput.innerHTML = html;
+  }
+
+  els.toggleYamlBtn.addEventListener('click', () => {
+    const showing = els.yamlPanel.style.display !== 'none';
+    els.yamlPanel.style.display = showing ? 'none' : 'block';
+    els.toggleYamlBtn.textContent = showing
+      ? '+ Generate publish workflow (.yml)'
+      : '− Hide publish workflow (.yml)';
+    if (!showing) renderYaml();
+  });
+
+  els.siteRoot.addEventListener('change', renderYaml);
+
+  els.copyYamlBtn.addEventListener('click', async () => {
+    const text = buildWorkflowYaml();
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    els.copyYamlBtn.textContent = 'Copied ✓';
+    setTimeout(() => { els.copyYamlBtn.textContent = 'Copy YAML'; }, 1800);
+  });
+
+  els.downloadYamlBtn.addEventListener('click', () => {
+    const text = buildWorkflowYaml();
+    const blob = new Blob([text], { type: 'text/yaml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'deploy-pages.yml';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
 
   els.saveHistoryBtn.addEventListener('click', () => {
     const data = collectFormData();
