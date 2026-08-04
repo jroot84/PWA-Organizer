@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PWA Organizer</title>
+<meta name="description" content="Fill in PWA project details once, copy a paste-ready instructions block for Claude.">
+<meta name="theme-color" content="#458271">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PWA-O">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+  :root {
+    --bg: #12151a;
+    --panel: #1a1f27;
+    --panel-raised: #212734;
+    --border: #2a3140;
+    --text: #e7eaf0;
+    --muted: #8b93a5;
+    --muted-dim: #5c6577;
+    --amber: #e8a33d;
+    --amber-dim: #4a3a1e;
+    --teal: #4fb0a6;
+    --teal-dim: #1c3733;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+  }
+
+  ::selection { background: var(--amber); color: #12151a; }
+
+  /* ---------- header ---------- */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 24px 22px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .wordmark {
+    font-family: var(--mono);
+    font-size: 15px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .wordmark span { color: var(--amber); }
+  h1 {
+    margin: 4px 0 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .tagline {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 420px;
+  }
+  .status-chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--teal);
+    background: var(--teal-dim);
+    border: 1px solid #2c5a54;
+    padding: 6px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    align-self: center;
+  }
+
+  /* ---------- layout ---------- */
+  .wrap {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  @media (min-width: 980px) {
+    .wrap {
+      grid-template-columns: 1fr 460px;
+      align-items: start;
+    }
+  }
+
+  main.form-col {
+    padding: 28px 24px 100px;
+  }
+
+  /* ---------- checklist ---------- */
+  .checklist {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 28px;
+  }
+  .checklist-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .checklist-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .checklist-count {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+  }
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+  }
+  .check-item:first-of-type { border-top: none; }
+  .check-item input[type="checkbox"] {
+    appearance: none;
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--muted-dim);
+    border-radius: 4px;
+    margin-top: 1px;
+    flex-shrink: 0;
+    cursor: pointer;
+    position: relative;
+    background: transparent;
+  }
+  .check-item input[type="checkbox"]:checked {
+    background: var(--amber);
+    border-color: var(--amber);
+  }
+  .check-item input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 5px; top: 1px;
+    width: 5px; height: 9px;
+    border: solid #12151a;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .check-item label {
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .check-item .hint {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ---------- sections ---------- */
+  .section {
+    margin-bottom: 30px;
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+  }
+  .section h2 {
+    font-size: 17px;
+    margin: 2px 0 16px;
+    font-weight: 600;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 560px) {
+    .field-row { grid-template-columns: 1fr; }
+  }
+  label.field-label {
+    display: block;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: var(--sans);
+    transition: border-color 0.15s ease;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--amber);
+  }
+  textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+  ::placeholder { color: var(--muted-dim); }
+
+  .color-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  input[type="color"] {
+    width: 40px; height: 40px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .radio-option:has(input:checked) {
+    border-color: var(--amber);
+    background: var(--amber-dim);
+  }
+  .radio-option input { margin-top: 3px; accent-color: var(--amber); flex-shrink: 0; }
+  .radio-option .opt-title { font-size: 14px; font-weight: 500; }
+  .radio-option .opt-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .btn-reset {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .btn-reset:hover { border-color: var(--muted); color: var(--text); }
+
+  /* ---------- output panel ---------- */
+  aside.output-col {
+    padding: 28px 24px;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .terminal {
+    background: #0d1015;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6);
+  }
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: #10141a;
+  }
+  .terminal-bar .fname {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .dots { display: flex; gap: 6px; }
+  .dots span {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #2a3140;
+  }
+  .terminal-body {
+    padding: 18px 18px 20px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: #cfd6e0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+    max-height: 58vh;
+  }
+  .terminal-body .lbl { color: var(--amber); }
+  .terminal-body .val { color: #cfd6e0; }
+  .terminal-body .ph { color: var(--muted-dim); font-style: italic; }
+  .terminal-body .hdr { color: var(--teal); }
+  .cursor {
+    display: inline-block;
+    width: 7px; height: 14px;
+    background: var(--amber);
+    vertical-align: text-bottom;
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .copy-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .btn-copy {
+    flex: 1;
+    background: var(--amber);
+    color: #12151a;
+    border: none;
+    border-radius: 8px;
+    padding: 13px 16px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.15s ease;
+  }
+  .btn-copy:hover { background: #f0b354; }
+  .btn-copy:active { transform: scale(0.98); }
+  .btn-copy.copied { background: var(--teal); color: #0d1512; }
+
+  .readiness-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 10px;
+    font-family: var(--mono);
+    line-height: 1.5;
+  }
+
+  /* ---------- history ---------- */
+  .history {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 28px;
+  }
+  .history-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .history-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .history-empty {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 10px 0 2px;
+  }
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .history-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .history-card:hover { border-color: var(--muted-dim); }
+  .history-card.active { border-color: var(--amber); }
+  .history-card .hc-main { min-width: 0; flex: 1; }
+  .history-card .hc-name {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history-card .hc-repo {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .status-badge {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    padding: 4px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .hc-delete {
+    background: transparent;
+    border: none;
+    color: var(--muted-dim);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 6px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    line-height: 1;
+  }
+  .hc-delete:hover { color: #d96a5c; background: rgba(217,106,92,0.12); }
+
+  .save-history-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  .btn-save-history {
+    background: transparent;
+    border: 1px solid var(--teal);
+    color: var(--teal);
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .btn-save-history:hover { background: var(--teal-dim); }
+  .save-hint {
+    font-size: 11.5px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  footer {
+    text-align: center;
+    padding: 30px 24px 50px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted-dim);
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">jroot84 <span>/</span> build tools</div>
+    <h1>PWA Organizer</h1>
+    <div class="tagline">Fill in the details once, copy the block, paste it as project instructions. No more troubleshooting icons on upload one.</div>
+  </div>
+  <div class="status-chip" id="statusChip">0 / 6 ready</div>
+</header>
+
+<div class="wrap">
+  <main class="form-col">
+
+    <div class="history">
+      <div class="history-head">
+        <div class="history-title">Project history</div>
+      </div>
+      <div id="historyEmpty" class="history-empty">No saved projects yet — fill in the form and save it below.</div>
+      <div id="historyList" class="history-list"></div>
+    </div>
+
+    <div class="checklist">
+      <div class="checklist-head">
+        <div class="checklist-title">Pre-flight checklist</div>
+        <div class="checklist-count" id="checkCount">0 / 5</div>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="chk-name">
+        <label for="chk-name">App name and short name decided
+          <span class="hint">Short name is what shows under the home-screen icon — 12 characters max.</span>
+        </label>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="chk-repo">
+        <label for="chk-repo">Repo created on GitHub
+          <span class="hint">Pages source set to GitHub Actions, or the /www folder on main.</span>
+        </label>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="chk-colors">
+        <label for="chk-colors">Theme and background color chosen
+          <span class="hint">These drive the manifest, the browser chrome color, and the icon palette.</span>
+        </label>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="chk-icon">
+        <label for="chk-icon">Icon concept written down
+          <span class="hint">One line is enough — Claude generates the full icon set from it.</span>
+        </label>
+      </div>
+      <div class="check-item">
+        <input type="checkbox" id="chk-offline">
+        <label for="chk-offline">Decided if this app needs to work offline
+          <span class="hint">Determines whether a service worker gets built on the first pass.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-num">01</div>
+      <h2>Project identity</h2>
+      <div class="field">
+        <label class="field-label" for="appName">App name</label>
+        <input type="text" id="appName" placeholder="e.g. Ready Set Train">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="shortName">Short name (max 12 chars)</label>
+          <input type="text" id="shortName" maxlength="12" placeholder="e.g. RST">
+        </div>
+        <div class="field">
+          <label class="field-label" for="ghUser">GitHub username</label>
+          <input type="text" id="ghUser" value="jroot84">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="repoName">Repo name</label>
+        <input type="text" id="repoName" placeholder="e.g. RST.ReadySetTrain">
+      </div>
+      <div class="field">
+        <label class="field-label" for="siteRoot">Site root folder in the repo</label>
+        <select id="siteRoot">
+          <option value="www/">www/</option>
+          <option value="docs/">docs/</option>
+          <option value="(repo root)">repo root — no subfolder</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="statusSelect">Status</label>
+        <select id="statusSelect">
+          <option value="planning">Planning</option>
+          <option value="icons">Icons generated</option>
+          <option value="repo">Repo created</option>
+          <option value="uploaded">Files uploaded</option>
+          <option value="live">Live</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-num">02</div>
+      <h2>Look and feel</h2>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="themeColor">Theme color</label>
+          <div class="color-field">
+            <input type="color" id="themeColorPicker" value="#458271">
+            <input type="text" id="themeColor" value="#458271">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="bgColor">Background color</label>
+          <div class="color-field">
+            <input type="color" id="bgColorPicker" value="#12151a">
+            <input type="text" id="bgColor" value="#12151a">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="iconConcept">Icon concept (one line — Claude generates the set from this)</label>
+        <textarea id="iconConcept" placeholder="e.g. minimal line-art stopwatch over a track lane, flat color, no gradients"></textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-num">03</div>
+      <h2>Offline behavior</h2>
+      <div class="radio-group" id="offlineGroup">
+        <label class="radio-option">
+          <input type="radio" name="offline" value="yes" checked>
+          <span>
+            <span class="opt-title">Yes — build a service worker</span>
+            <span class="opt-desc">Caches the app shell so it loads instantly with no signal. Recommended for anything used on the go.</span>
+          </span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="offline" value="no">
+          <span>
+            <span class="opt-title">No — skip it for now</span>
+            <span class="opt-desc">Simpler first build. Can be added later without touching the manifest.</span>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-num">04</div>
+      <h2>Build discipline</h2>
+      <div class="radio-group" id="disciplineGroup">
+        <label class="radio-option">
+          <input type="radio" name="discipline" value="tdd" checked>
+          <span>
+            <span class="opt-title">Test-driven, like Duebook</span>
+            <span class="opt-desc">Logic gets verified step by step before moving on.</span>
+          </span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="discipline" value="polish">
+          <span>
+            <span class="opt-title">Iterative visual/audio polish, like Orbis Flip</span>
+            <span class="opt-desc">Build fast, then refine feel and detail in passes.</span>
+          </span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="discipline" value="other">
+          <span>
+            <span class="opt-title">Something else</span>
+            <span class="opt-desc">Describe it in additional requirements below.</span>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-num">05</div>
+      <h2>Anything else</h2>
+      <div class="field">
+        <label class="field-label" for="extraReqs">Additional requirements (optional)</label>
+        <textarea id="extraReqs" placeholder="e.g. needs a settings screen, should support two workout types, data export to CSV..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn-reset" id="resetBtn">Reset all fields</button>
+
+  </main>
+
+  <aside class="output-col">
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="fname">project-instructions.txt</div>
+        <div style="width:40px"></div>
+      </div>
+      <div class="terminal-body" id="output"></div>
+    </div>
+    <div class="copy-bar">
+      <button class="btn-copy" id="copyBtn">Copy details</button>
+    </div>
+    <div class="save-history-bar">
+      <button class="btn-save-history" id="saveHistoryBtn">Save to history</button>
+      <span class="save-hint" id="saveHint"></span>
+    </div>
+    <div class="readiness-note" id="readinessNote"></div>
+  </aside>
+</div>
+
+<footer>PWA ORGANIZER — BUILT FOR REPEATABLE FIRST-TRY DEPLOYS</footer>
+
+<script>
+  const els = {
+    appName: document.getElementById('appName'),
+    shortName: document.getElementById('shortName'),
+    ghUser: document.getElementById('ghUser'),
+    repoName: document.getElementById('repoName'),
+    siteRoot: document.getElementById('siteRoot'),
+    themeColor: document.getElementById('themeColor'),
+    themeColorPicker: document.getElementById('themeColorPicker'),
+    bgColor: document.getElementById('bgColor'),
+    bgColorPicker: document.getElementById('bgColorPicker'),
+    iconConcept: document.getElementById('iconConcept'),
+    extraReqs: document.getElementById('extraReqs'),
+    output: document.getElementById('output'),
+    copyBtn: document.getElementById('copyBtn'),
+    checkCount: document.getElementById('checkCount'),
+    statusChip: document.getElementById('statusChip'),
+    readinessNote: document.getElementById('readinessNote'),
+    resetBtn: document.getElementById('resetBtn'),
+    statusSelect: document.getElementById('statusSelect'),
+    historyList: document.getElementById('historyList'),
+    historyEmpty: document.getElementById('historyEmpty'),
+    saveHistoryBtn: document.getElementById('saveHistoryBtn'),
+    saveHint: document.getElementById('saveHint'),
+  };
+
+  let currentProjectId = null;
+
+  const STATUS_META = {
+    planning: { label: 'Planning',        color: '#8b93a5', bg: '#252b35', border: '#3a4252' },
+    icons:    { label: 'Icons generated', color: '#e8a33d', bg: '#4a3a1e', border: '#6b5225' },
+    repo:     { label: 'Repo created',    color: '#e8a33d', bg: '#4a3a1e', border: '#6b5225' },
+    uploaded: { label: 'Files uploaded',  color: '#4fb0a6', bg: '#1c3733', border: '#2c5a54' },
+    live:     { label: 'Live',            color: '#4fb0a6', bg: '#1c3733', border: '#2c5a54' },
+  };
+
+  function loadProjects() {
+    try {
+      return JSON.parse(localStorage.getItem('pwaOrganizerProjects') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+  function saveProjects(list) {
+    localStorage.setItem('pwaOrganizerProjects', JSON.stringify(list));
+  }
+
+  const checkboxes = ['chk-name','chk-repo','chk-colors','chk-icon','chk-offline'].map(id => document.getElementById(id));
+
+  function ph(val, placeholder) {
+    return val && val.trim() ? esc(val) : '<span class="ph">' + placeholder + '</span>';
+  }
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function plain(val, fallback) {
+    return val && val.trim() ? val.trim() : fallback;
+  }
+
+  function offlineValue() {
+    return document.querySelector('input[name="offline"]:checked').value;
+  }
+  function disciplineLabel() {
+    const v = document.querySelector('input[name="discipline"]:checked').value;
+    if (v === 'tdd') return 'Test-driven — verify logic step by step before moving on, like Duebook';
+    if (v === 'polish') return 'Iterative visual/audio polish — build fast, then refine in passes, like Orbis Flip';
+    return 'Other — see additional requirements below';
+  }
+
+  function liveUrl() {
+    const user = plain(els.ghUser.value, '[github-username]');
+    const repo = plain(els.repoName.value, '[repo-name]');
+    return `${user}.github.io/${repo}/`;
+  }
+
+  function buildOutput() {
+    const appName = plain(els.appName.value, '[App Name]');
+    const shortName = plain(els.shortName.value, '[max 12 chars]');
+    const user = plain(els.ghUser.value, '[github-username]');
+    const repo = plain(els.repoName.value, '[repo-name]');
+    const root = els.siteRoot.value;
+    const theme = plain(els.themeColor.value, '#______');
+    const bg = plain(els.bgColor.value, '#______');
+    const icon = plain(els.iconConcept.value, '[one line — symbol/imagery/style]');
+    const offline = offlineValue();
+    const discipline = disciplineLabel();
+    const extra = plain(els.extraReqs.value, '');
+
+    const offlineBlock = offline === 'yes'
+      ? `Build a service worker on the first pass — cache the app shell (index.html,
+manifest.json, icons, any web fonts) so the app works with zero signal.
+Use relative cache paths and a version string I can bump on future changes.`
+      : `Skip the service worker for the first pass — ship without offline support
+for now. Keep the manifest clean so one can be added later without rework.`;
+
+    let out = `PROJECT: ${appName}
+REPO: github.com/${user}/${repo}
+LIVE URL: ${user}.github.io/${repo}/
+SITE ROOT FOLDER: ${root}
+APP SHORT NAME: ${shortName}
+THEME COLOR: ${theme}
+BACKGROUND COLOR: ${bg}
+ICON CONCEPT: ${icon}
+ICONS: Claude generates the full set (192, 512, maskable, apple-touch,
+       favicon) as code in ${root === '(repo root)' ? '' : root}icons/ — no files needed from me.
+
+BUILD DISCIPLINE: ${discipline}
+
+OFFLINE BEHAVIOR:
+${offlineBlock}
+`;
+
+    if (extra) {
+      out += `\nADDITIONAL REQUIREMENTS:\n${extra}\n`;
+    }
+
+    out += `
+---
+Before writing any app code, do these in order:
+1. Generate the full icon set as code (don't ask me for image files) and
+   save it into the icons folder using consistent, predictable filenames
+2. Build manifest.json using RELATIVE paths only (the site is served from
+   a subfolder, not domain root) — set start_url and scope to "./" and
+   point icon src fields at the exact filenames from step 1
+3. ${offline === 'yes'
+      ? 'Build the service worker per the offline behavior above, and wire\n   up its registration in index.html'
+      : 'Confirm no service worker registration is present, so nothing 404s'}
+4. Confirm index.html correctly links the manifest and icons
+5. Give me the exact folder structure to create before I push, so nothing
+   404s on first deploy
+
+Then generate the files.`;
+
+    return out;
+  }
+
+  function renderOutput() {
+    const raw = buildOutput();
+    // syntax-highlight the LABEL: value lines for readability
+    const html = raw
+      .split('\n')
+      .map(line => {
+        const m = line.match(/^([A-Z][A-Z0-9 _]*:)(.*)$/);
+        if (m) {
+          return `<span class="lbl">${esc(m[1])}</span>${esc(m[2])}`;
+        }
+        if (line === '---') return `<span class="hdr">${'─'.repeat(40)}</span>`;
+        if (/^\d\.\s/.test(line)) return `<span class="lbl">${line.slice(0,2)}</span>${esc(line.slice(2))}`;
+        return esc(line);
+      })
+      .join('\n');
+    els.output.innerHTML = html + '<span class="cursor"></span>';
+  }
+
+  function updateReadiness() {
+    const checked = checkboxes.filter(c => c.checked).length;
+    els.checkCount.textContent = `${checked} / 5`;
+
+    const requiredFilled = [els.appName.value, els.repoName.value, els.iconConcept.value]
+      .filter(v => v.trim()).length;
+    els.statusChip.textContent = `${requiredFilled} / 3 fields ready`;
+    els.statusChip.style.color = requiredFilled === 3 ? 'var(--teal)' : 'var(--amber)';
+    els.statusChip.style.background = requiredFilled === 3 ? 'var(--teal-dim)' : 'var(--amber-dim)';
+    els.statusChip.style.borderColor = requiredFilled === 3 ? '#2c5a54' : '#6b5225';
+
+    if (requiredFilled < 3) {
+      els.readinessNote.textContent = 'Fill in app name, repo name, and icon concept for a complete block.';
+    } else if (checked < 5) {
+      els.readinessNote.textContent = `${5 - checked} pre-flight item${5-checked === 1 ? '' : 's'} still unchecked — worth confirming before you push.`;
+    } else {
+      els.readinessNote.textContent = 'Ready. Copy and paste this into your Claude project instructions.';
+    }
+  }
+
+  function refresh() {
+    renderOutput();
+    updateReadiness();
+  }
+
+  function collectFormData() {
+    return {
+      appName: els.appName.value,
+      shortName: els.shortName.value,
+      ghUser: els.ghUser.value,
+      repoName: els.repoName.value,
+      siteRoot: els.siteRoot.value,
+      themeColor: els.themeColor.value,
+      bgColor: els.bgColor.value,
+      iconConcept: els.iconConcept.value,
+      extraReqs: els.extraReqs.value,
+      status: els.statusSelect.value,
+      offline: offlineValue(),
+      discipline: document.querySelector('input[name="discipline"]:checked').value,
+      checks: checkboxes.map(c => c.checked),
+    };
+  }
+
+  function applyFormData(data) {
+    els.appName.value = data.appName || '';
+    els.shortName.value = data.shortName || '';
+    els.ghUser.value = data.ghUser || 'jroot84';
+    els.repoName.value = data.repoName || '';
+    els.siteRoot.value = data.siteRoot || 'www/';
+    els.themeColor.value = data.themeColor || '#458271';
+    els.themeColorPicker.value = /^#[0-9a-fA-F]{6}$/.test(data.themeColor) ? data.themeColor : '#458271';
+    els.bgColor.value = data.bgColor || '#12151a';
+    els.bgColorPicker.value = /^#[0-9a-fA-F]{6}$/.test(data.bgColor) ? data.bgColor : '#12151a';
+    els.iconConcept.value = data.iconConcept || '';
+    els.extraReqs.value = data.extraReqs || '';
+    els.statusSelect.value = data.status || 'planning';
+    document.querySelector(`input[name="offline"][value="${data.offline || 'yes'}"]`).checked = true;
+    document.querySelector(`input[name="discipline"][value="${data.discipline || 'tdd'}"]`).checked = true;
+    if (Array.isArray(data.checks)) {
+      checkboxes.forEach((c, i) => c.checked = !!data.checks[i]);
+    }
+  }
+
+  function renderHistory() {
+    const list = loadProjects();
+    els.historyEmpty.style.display = list.length ? 'none' : 'block';
+    els.historyList.innerHTML = '';
+    list
+      .slice()
+      .sort((a, b) => b.savedAt - a.savedAt)
+      .forEach(p => {
+        const meta = STATUS_META[p.status] || STATUS_META.planning;
+        const card = document.createElement('div');
+        card.className = 'history-card' + (p.id === currentProjectId ? ' active' : '');
+        card.innerHTML = `
+          <div class="hc-main">
+            <div class="hc-name">${esc(p.appName || 'Untitled project')}</div>
+            <div class="hc-repo">${esc(p.repoName || 'no repo set')}</div>
+          </div>
+          <span class="status-badge" style="color:${meta.color};background:${meta.bg};border:1px solid ${meta.border}">${meta.label}</span>
+          <button class="hc-delete" title="Delete" data-id="${p.id}">&times;</button>
+        `;
+        card.addEventListener('click', (e) => {
+          if (e.target.classList.contains('hc-delete')) return;
+          currentProjectId = p.id;
+          applyFormData(p);
+          refresh();
+          renderHistory();
+        });
+        card.querySelector('.hc-delete').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const updated = loadProjects().filter(x => x.id !== p.id);
+          saveProjects(updated);
+          if (currentProjectId === p.id) currentProjectId = null;
+          renderHistory();
+        });
+        els.historyList.appendChild(card);
+      });
+  }
+
+  els.saveHistoryBtn.addEventListener('click', () => {
+    const data = collectFormData();
+    const list = loadProjects();
+    if (currentProjectId) {
+      const idx = list.findIndex(p => p.id === currentProjectId);
+      if (idx >= 0) {
+        list[idx] = { ...data, id: currentProjectId, savedAt: Date.now() };
+      } else {
+        currentProjectId = 'p' + Date.now();
+        list.push({ ...data, id: currentProjectId, savedAt: Date.now() });
+      }
+    } else {
+      currentProjectId = 'p' + Date.now();
+      list.push({ ...data, id: currentProjectId, savedAt: Date.now() });
+    }
+    saveProjects(list);
+    renderHistory();
+    els.saveHint.textContent = 'Saved.';
+    setTimeout(() => { els.saveHint.textContent = ''; }, 1800);
+  });
+
+  // sync color pickers <-> text inputs
+  els.themeColorPicker.addEventListener('input', () => { els.themeColor.value = els.themeColorPicker.value; refresh(); });
+  els.bgColorPicker.addEventListener('input', () => { els.bgColor.value = els.bgColorPicker.value; refresh(); });
+  els.themeColor.addEventListener('input', () => {
+    if (/^#[0-9a-fA-F]{6}$/.test(els.themeColor.value)) els.themeColorPicker.value = els.themeColor.value;
+    refresh();
+  });
+  els.bgColor.addEventListener('input', () => {
+    if (/^#[0-9a-fA-F]{6}$/.test(els.bgColor.value)) els.bgColorPicker.value = els.bgColor.value;
+    refresh();
+  });
+
+  [els.appName, els.shortName, els.ghUser, els.repoName, els.iconConcept, els.extraReqs].forEach(el => {
+    el.addEventListener('input', refresh);
+  });
+  els.siteRoot.addEventListener('change', refresh);
+  document.querySelectorAll('input[name="offline"]').forEach(r => r.addEventListener('change', refresh));
+  document.querySelectorAll('input[name="discipline"]').forEach(r => r.addEventListener('change', refresh));
+  checkboxes.forEach(c => c.addEventListener('change', updateReadiness));
+
+  els.copyBtn.addEventListener('click', async () => {
+    const text = buildOutput();
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    els.copyBtn.textContent = 'Copied ✓';
+    els.copyBtn.classList.add('copied');
+    setTimeout(() => {
+      els.copyBtn.textContent = 'Copy details';
+      els.copyBtn.classList.remove('copied');
+    }, 1800);
+  });
+
+  els.resetBtn.addEventListener('click', () => {
+    if (!confirm('Reset all fields for a new project?')) return;
+    currentProjectId = null;
+    els.appName.value = '';
+    els.shortName.value = '';
+    els.repoName.value = '';
+    els.iconConcept.value = '';
+    els.extraReqs.value = '';
+    els.themeColor.value = '#458271';
+    els.themeColorPicker.value = '#458271';
+    els.bgColor.value = '#12151a';
+    els.bgColorPicker.value = '#12151a';
+    els.siteRoot.value = 'www/';
+    els.statusSelect.value = 'planning';
+    document.querySelector('input[name="offline"][value="yes"]').checked = true;
+    document.querySelector('input[name="discipline"][value="tdd"]').checked = true;
+    checkboxes.forEach(c => c.checked = false);
+    refresh();
+    renderHistory();
+  });
+
+  refresh();
+  renderHistory();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch((err) => {
+        console.error("SW registration failed:", err);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
