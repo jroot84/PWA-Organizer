@@ -1,7 +1,7 @@
 // PWA Organizer — Service Worker
 // Bump CACHE_NAME any time index.html or its assets change, so returning
 // users get the update instead of a stale cached copy.
-const CACHE_NAME = "pwa-organizer-cache-v2";
+const CACHE_NAME = "pwa-organizer-cache-v3";
 
 const PRECACHE_URLS = [
   "./",

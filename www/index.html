@@ -506,6 +506,149 @@
   .btn-download:hover { background: #62c2b8; }
   .btn-download:active { transform: scale(0.98); }
 
+  /* ---------- tabs ---------- */
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    padding: 16px 24px 0;
+    max-width: 1280px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 0.03em;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .btn-new-app {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--amber);
+    color: #12151a;
+    border: none;
+    border-radius: 20px;
+    padding: 9px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .btn-new-app:hover { background: #f0b354; }
+  .btn-new-app:active { transform: scale(0.97); }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ---------- info icon + modal ---------- */
+  .section-head-row, .checklist-head-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .info-btn {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--muted-dim);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .info-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 10, 13, 0.72);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.7);
+  }
+  .modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-head h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-body {
+    padding: 18px 20px 22px;
+    overflow-y: auto;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+  .modal-body p { margin: 0 0 12px; }
+  .modal-body p:last-child { margin-bottom: 0; }
+  .modal-body strong { color: var(--amber); }
+
+  /* ---------- projects tab ---------- */
+  .projects-view {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 28px 24px 80px;
+  }
+  .projects-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .projects-head h2 { margin: 0; font-size: 18px; }
+  .projects-view .history-list { max-width: 640px; }
+  .projects-view .history-card { padding: 14px 16px; }
+
   footer {
     text-align: center;
     padding: 30px 24px 50px;
@@ -524,23 +667,27 @@
     <h1>PWA Organizer</h1>
     <div class="tagline">Fill in the details once, copy the block, paste it as project instructions. No more troubleshooting icons on upload one.</div>
   </div>
-  <div class="status-chip" id="statusChip">0 / 6 ready</div>
+  <div class="header-actions">
+    <div class="status-chip" id="statusChip">0 / 6 ready</div>
+    <button class="btn-new-app" id="newAppBtn">+ New app</button>
+  </div>
 </header>
 
+<div class="tab-nav">
+  <button class="tab-btn active" data-tab="current">Current project</button>
+  <button class="tab-btn" data-tab="projects">Projects</button>
+</div>
+
+<div id="tab-current" class="tab-panel active">
 <div class="wrap">
   <main class="form-col">
 
-    <div class="history">
-      <div class="history-head">
-        <div class="history-title">Project history</div>
-      </div>
-      <div id="historyEmpty" class="history-empty">No saved projects yet — fill in the form and save it below.</div>
-      <div id="historyList" class="history-list"></div>
-    </div>
-
     <div class="checklist">
       <div class="checklist-head">
-        <div class="checklist-title">Pre-flight checklist</div>
+        <div class="checklist-head-row">
+          <div class="checklist-title">Pre-flight checklist</div>
+          <button class="info-btn" data-info="checklist" aria-label="About this checklist">i</button>
+        </div>
         <div class="checklist-count" id="checkCount">0 / 5</div>
       </div>
       <div class="check-item">
@@ -577,7 +724,7 @@
 
     <div class="section">
       <div class="section-num">01</div>
-      <h2>Project identity</h2>
+      <div class="section-head-row"><h2>Project identity</h2><button class="info-btn" data-info="identity" aria-label="About project identity">i</button></div>
       <div class="field">
         <label class="field-label" for="appName">App name</label>
         <input type="text" id="appName" placeholder="e.g. Ready Set Train">
@@ -618,7 +765,7 @@
 
     <div class="section">
       <div class="section-num">02</div>
-      <h2>Look and feel</h2>
+      <div class="section-head-row"><h2>Look and feel</h2><button class="info-btn" data-info="lookfeel" aria-label="About look and feel">i</button></div>
       <div class="field-row">
         <div class="field">
           <label class="field-label" for="themeColor">Theme color</label>
@@ -643,7 +790,7 @@
 
     <div class="section">
       <div class="section-num">03</div>
-      <h2>Offline behavior</h2>
+      <div class="section-head-row"><h2>Offline behavior</h2><button class="info-btn" data-info="offline" aria-label="About offline behavior">i</button></div>
       <div class="radio-group" id="offlineGroup">
         <label class="radio-option">
           <input type="radio" name="offline" value="yes" checked>
@@ -664,7 +811,7 @@
 
     <div class="section">
       <div class="section-num">04</div>
-      <h2>Build discipline</h2>
+      <div class="section-head-row"><h2>Build discipline</h2><button class="info-btn" data-info="discipline" aria-label="About build discipline">i</button></div>
       <div class="radio-group" id="disciplineGroup">
         <label class="radio-option">
           <input type="radio" name="discipline" value="tdd" checked>
@@ -692,14 +839,12 @@
 
     <div class="section">
       <div class="section-num">05</div>
-      <h2>Anything else</h2>
+      <div class="section-head-row"><h2>Anything else</h2><button class="info-btn" data-info="extra" aria-label="About additional requirements">i</button></div>
       <div class="field">
         <label class="field-label" for="extraReqs">Additional requirements (optional)</label>
         <textarea id="extraReqs" placeholder="e.g. needs a settings screen, should support two workout types, data export to CSV..."></textarea>
       </div>
     </div>
-
-    <button class="btn-reset" id="resetBtn">Reset all fields</button>
 
   </main>
 
@@ -739,6 +884,28 @@
     </div>
   </aside>
 </div>
+</div>
+
+<div id="tab-projects" class="tab-panel">
+  <div class="projects-view">
+    <div class="projects-head">
+      <h2>Saved projects</h2>
+      <button class="btn-new-app" id="newAppBtn2">+ New app</button>
+    </div>
+    <div id="historyEmpty" class="history-empty">No saved projects yet — fill in a project on the Current project tab and save it.</div>
+    <div id="historyList" class="history-list"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="modalTitle"></h3>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
 
 <footer>PWA ORGANIZER — BUILT FOR REPEATABLE FIRST-TRY DEPLOYS</footer>
 
@@ -760,7 +927,8 @@
     checkCount: document.getElementById('checkCount'),
     statusChip: document.getElementById('statusChip'),
     readinessNote: document.getElementById('readinessNote'),
-    resetBtn: document.getElementById('resetBtn'),
+    newAppBtn: document.getElementById('newAppBtn'),
+    newAppBtn2: document.getElementById('newAppBtn2'),
     statusSelect: document.getElementById('statusSelect'),
     historyList: document.getElementById('historyList'),
     historyEmpty: document.getElementById('historyEmpty'),
@@ -771,6 +939,10 @@
     yamlOutput: document.getElementById('yamlOutput'),
     copyYamlBtn: document.getElementById('copyYamlBtn'),
     downloadYamlBtn: document.getElementById('downloadYamlBtn'),
+    modalOverlay: document.getElementById('modalOverlay'),
+    modalTitle: document.getElementById('modalTitle'),
+    modalBody: document.getElementById('modalBody'),
+    modalClose: document.getElementById('modalClose'),
   };
 
   let currentProjectId = null;
@@ -989,6 +1161,7 @@ Then generate the files.`;
           applyFormData(p);
           refresh();
           renderHistory();
+          switchTab('current');
         });
         card.querySelector('.hc-delete').addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1159,8 +1332,7 @@ jobs:
     }, 1800);
   });
 
-  els.resetBtn.addEventListener('click', () => {
-    if (!confirm('Reset all fields for a new project?')) return;
+  function newApp() {
     currentProjectId = null;
     els.appName.value = '';
     els.shortName.value = '';
@@ -1178,6 +1350,78 @@ jobs:
     checkboxes.forEach(c => c.checked = false);
     refresh();
     renderHistory();
+    switchTab('current');
+    els.appName.focus();
+  }
+  els.newAppBtn.addEventListener('click', newApp);
+  els.newAppBtn2.addEventListener('click', newApp);
+
+  /* ---------- tabs ---------- */
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    document.getElementById('tab-current').classList.toggle('active', name === 'current');
+    document.getElementById('tab-projects').classList.toggle('active', name === 'projects');
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.addEventListener('click', () => switchTab(b.dataset.tab));
+  });
+
+  /* ---------- info modal ---------- */
+  const INFO_CONTENT = {
+    checklist: {
+      title: 'Why this checklist',
+      body: `<p>Almost every failed first deploy traces back to one of these five things being decided too late — usually after code is already written around a guess.</p>
+             <p>Confirming them upfront means Claude can build the manifest, icons, and file paths correctly on the <strong>first pass</strong>, instead of you troubleshooting a broken icon or a 404 after pushing.</p>`
+    },
+    identity: {
+      title: 'Project identity',
+      body: `<p>GitHub Pages serves a repo at <strong>username.github.io/repo-name/</strong>, not at the domain root. That subfolder is the source of most path bugs — a manifest or service worker written as if the site lives at "/" will silently fail.</p>
+             <p>The <strong>site root folder</strong> tells Claude which folder in the repo actually gets published, so every relative path it writes (icons, manifest, service worker) lines up with where the browser will actually look.</p>
+             <p><strong>Status</strong> just tracks where this project is in your own process — it doesn't get pasted into Claude's instructions, it's for your Projects tab.</p>`
+    },
+    lookfeel: {
+      title: 'Look and feel',
+      body: `<p><strong>Theme color</strong> tints the browser chrome and any install/splash screen. <strong>Background color</strong> shows briefly while the app loads, before your CSS paints.</p>
+             <p>The <strong>icon concept</strong> only needs to be one line — Claude generates the full icon set (192, 512, maskable, apple-touch, favicon) as code from it. You never need to prepare or upload image files yourself.</p>`
+    },
+    offline: {
+      title: 'Offline behavior',
+      body: `<p>A service worker caches your app shell (HTML, manifest, icons, fonts) so the app still loads with zero signal — worth it for anything you'd use on the go.</p>
+             <p>It's not strictly required for the install prompt anymore on Chrome, but it's the only thing that gives you real offline behavior and a clean update mechanism (a version string you bump when you ship changes).</p>
+             <p>Choosing "No" here keeps the first build simpler — a service worker can always be added later without touching the manifest.</p>`
+    },
+    discipline: {
+      title: 'Build discipline',
+      body: `<p>This just tells Claude how you want it to work through the build — not a claim about the app itself.</p>
+             <p><strong>Test-driven</strong> means logic gets verified step by step before moving on — good for anything with real calculations or state (budgets, trackers, checklists).</p>
+             <p><strong>Iterative polish</strong> means building fast first, then refining feel, animation, and detail in passes — good for games or anything where the experience matters more than strict correctness up front.</p>`
+    },
+    extra: {
+      title: 'Additional requirements',
+      body: `<p>Anything specific to this app that the other fields don't capture — screens it needs, data it should track or export, integrations, anything you already know you'll want.</p>
+             <p>Being concrete here saves a round trip later — e.g. "should work with zero signal at the gym" is more useful to Claude than "make it fast."</p>`
+    },
+  };
+
+  function openModal(key) {
+    const info = INFO_CONTENT[key];
+    if (!info) return;
+    els.modalTitle.textContent = info.title;
+    els.modalBody.innerHTML = info.body;
+    els.modalOverlay.classList.add('open');
+  }
+  function closeModal() {
+    els.modalOverlay.classList.remove('open');
+  }
+  document.querySelectorAll('.info-btn').forEach(btn => {
+    btn.addEventListener('click', () => openModal(btn.dataset.info));
+  });
+  els.modalClose.addEventListener('click', closeModal);
+  els.modalOverlay.addEventListener('click', (e) => {
+    if (e.target === els.modalOverlay) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
   });
 
   refresh();
