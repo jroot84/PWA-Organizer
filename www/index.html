@@ -1000,6 +1000,23 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="uploadCompleteOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>✅ Upload complete</h3>
+      <button class="modal-close" id="uploadCompleteClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="uploadCompleteSummary" class="readiness-note" style="margin:0 0 16px;"></div>
+      <a id="uploadCompleteLink" class="start-choice-card" target="_blank" rel="noopener" style="display:block;">
+        <span class="start-choice-title">Open the live site ↗</span>
+        <span class="start-choice-desc" id="uploadCompleteUrl"></span>
+      </a>
+      <div class="readiness-note">The publish workflow takes 30–60 seconds to finish — if the page looks stale, give it a moment and reload.</div>
+    </div>
+  </div>
+</div>
+
 <script>
   const els = {
     appName: document.getElementById('appName'),
@@ -1083,6 +1100,11 @@
     repoPickerSearch: document.getElementById('repoPickerSearch'),
     repoPickerStatus: document.getElementById('repoPickerStatus'),
     repoPickerList: document.getElementById('repoPickerList'),
+    uploadCompleteOverlay: document.getElementById('uploadCompleteOverlay'),
+    uploadCompleteClose: document.getElementById('uploadCompleteClose'),
+    uploadCompleteSummary: document.getElementById('uploadCompleteSummary'),
+    uploadCompleteLink: document.getElementById('uploadCompleteLink'),
+    uploadCompleteUrl: document.getElementById('uploadCompleteUrl'),
   };
 
   let currentProjectId = null;
@@ -1588,6 +1610,47 @@ jobs:
     return ghFetch(`/repos/${user}/${repo}/contents/${path}`, { method: 'PUT', body: JSON.stringify(body) });
   }
 
+  async function getBranchHead(user, repo) {
+    const repoInfo = await ghFetch(`/repos/${user}/${repo}`);
+    const branch = repoInfo.default_branch || 'main';
+    const ref = await ghFetch(`/repos/${user}/${repo}/git/ref/heads/${branch}`);
+    const commitSha = ref.object.sha;
+    const commit = await ghFetch(`/repos/${user}/${repo}/git/commits/${commitSha}`);
+    return { branch, commitSha, treeSha: commit.tree.sha };
+  }
+
+  // Bundles any number of files into a single commit via the Git Data API
+  // (blob -> tree -> commit -> ref update) instead of one Contents-API PUT
+  // per file. This means one push and one triggered workflow run, no matter
+  // how many files are in the batch — a per-file PUT approach causes each
+  // file's push to cancel the previous file's still-running deploy, since
+  // the workflow uses cancel-in-progress on a shared concurrency group.
+  async function batchCommitFiles(user, repo, items, message) {
+    // items: [{ path, base64 }]
+    if (!items.length) return { committed: false };
+    const { branch, commitSha, treeSha } = await getBranchHead(user, repo);
+    const treeEntries = await Promise.all(items.map(async (it) => {
+      const blob = await ghFetch(`/repos/${user}/${repo}/git/blobs`, {
+        method: 'POST',
+        body: JSON.stringify({ content: it.base64, encoding: 'base64' }),
+      });
+      return { path: it.path, mode: '100644', type: 'blob', sha: blob.sha };
+    }));
+    const newTree = await ghFetch(`/repos/${user}/${repo}/git/trees`, {
+      method: 'POST',
+      body: JSON.stringify({ base_tree: treeSha, tree: treeEntries }),
+    });
+    const newCommit = await ghFetch(`/repos/${user}/${repo}/git/commits`, {
+      method: 'POST',
+      body: JSON.stringify({ message, tree: newTree.sha, parents: [commitSha] }),
+    });
+    await ghFetch(`/repos/${user}/${repo}/git/refs/heads/${branch}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ sha: newCommit.sha }),
+    });
+    return { committed: true, sha: newCommit.sha };
+  }
+
   function readFileAsBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -1693,20 +1756,19 @@ jobs:
 
       await ensureRepoNotEmpty(user, repo, els.deployLog);
 
-      logLine('Uploading deploy-pages.yml…');
-      await upsertFile(user, repo, '.github/workflows/deploy-pages.yml', buildWorkflowYaml(), 'Add GitHub Pages deploy workflow');
-      logLine('Workflow uploaded.', 'ok');
-
       const isRoot = els.siteRoot.value === '(repo root)';
       const rootPrefix = isRoot ? '' : els.siteRoot.value; // already ends in '/'
-      logLine(`Scaffolding folders${isRoot ? '' : ` under ${rootPrefix}`}…`);
-      const gitkeepMsg = 'Scaffold site-root/icons folders';
+      logLine(`Uploading deploy-pages.yml and scaffolding folders${isRoot ? '' : ` under ${rootPrefix}`}…`);
+      const scaffoldItems = [
+        { path: '.github/workflows/deploy-pages.yml', base64: b64(buildWorkflowYaml()) },
+        { path: `${rootPrefix}icons/.gitkeep`, base64: b64('') },
+      ];
+      if (!isRoot) scaffoldItems.push({ path: `${rootPrefix}.gitkeep`, base64: b64('') });
       try {
-        await upsertFile(user, repo, `${rootPrefix}icons/.gitkeep`, '', gitkeepMsg);
-        if (!isRoot) await upsertFile(user, repo, `${rootPrefix}.gitkeep`, '', gitkeepMsg);
-        logLine('Folders scaffolded — ready for your www files.', 'ok');
+        await batchCommitFiles(user, repo, scaffoldItems, 'Scaffold: deploy workflow + site-root/icons folders');
+        logLine('Workflow uploaded and folders scaffolded — ready for your www files.', 'ok');
       } catch (e) {
-        logLine(`Couldn't scaffold folders: ${e.message}`, 'warn');
+        logLine(`Couldn't scaffold: ${e.message}`, 'err');
       }
 
       await applyPagesSource(user, repo, els.deployLog);
@@ -1802,7 +1864,11 @@ jobs:
   function fullRepoPath(path) {
     const isRoot = els.siteRoot.value === '(repo root)';
     const rootPrefix = isRoot ? '' : els.siteRoot.value;
-    return `${rootPrefix}${path.replace(/^\/+/, '')}`;
+    let p = path.replace(/^\/+/, '');
+    if (rootPrefix && p.toLowerCase().startsWith(rootPrefix.toLowerCase())) {
+      p = p.slice(rootPrefix.length); // avoid a doubled prefix if it was typed in manually
+    }
+    return `${rootPrefix}${p}`;
   }
 
   async function checkFileExists(user, repo, path) {
@@ -1898,44 +1964,54 @@ jobs:
     els.uploadBtn.disabled = true;
     els.uploadBtn.classList.add('btn-spinner');
     const originalText = els.uploadBtn.textContent;
-    let failCount = 0;
-    let skipCount = 0;
 
     try {
       await ensureRepoNotEmpty(user, repo, els.uploadLog);
-    } catch (e) {
-      logLine(`Couldn't seed initial commit: ${e.message}`, 'err', els.uploadLog);
-    }
 
-    for (const pf of pendingFiles) {
-      const row = els.fileList.querySelector(`.file-row[data-id="${pf.id}"] .file-status`);
-      const fullPath = fullRepoPath(pf.path);
-      if (conflictMode === 'skip' && pf.exists === true) {
-        skipCount++;
-        logLine(`Skipped (already exists): ${fullPath}`, 'warn', els.uploadLog);
-        if (row) row.textContent = '—';
-        continue;
-      }
-      try {
+      const toUpload = [];
+      const skipped = [];
+      for (const pf of pendingFiles) {
+        const fullPath = fullRepoPath(pf.path);
+        if (conflictMode === 'skip' && pf.exists === true) {
+          skipped.push({ pf, fullPath });
+          continue;
+        }
         const base64 = await readFileAsBase64(pf.file);
-        await upsertFileRaw(user, repo, fullPath, base64, `Add/update ${pf.path} via PWA Organizer`);
-        logLine(`Uploaded ${fullPath}`, 'ok', els.uploadLog);
-        if (row) row.textContent = '✓';
-      } catch (e) {
-        failCount++;
-        logLine(`Failed: ${pf.path} — ${e.message}`, 'err', els.uploadLog);
-        if (row) row.textContent = '✕';
+        toUpload.push({ pf, fullPath, base64 });
       }
-    }
 
-    if (failCount === 0) {
+      skipped.forEach(({ pf, fullPath }) => {
+        logLine(`Skipped (already exists): ${fullPath}`, 'warn', els.uploadLog);
+        const row = els.fileList.querySelector(`.file-row[data-id="${pf.id}"] .file-status`);
+        if (row) row.textContent = '—';
+      });
+
+      if (toUpload.length) {
+        const names = toUpload.map(t => t.pf.path);
+        const message = names.length <= 5
+          ? `Upload ${names.join(', ')} via PWA Organizer`
+          : `Upload ${names.length} files via PWA Organizer`;
+        logLine(`Committing ${toUpload.length} file(s) in a single push…`, null, els.uploadLog);
+        await batchCommitFiles(user, repo, toUpload.map(t => ({ path: t.fullPath, base64: t.base64 })), message);
+        toUpload.forEach(({ pf, fullPath }) => {
+          logLine(`Uploaded ${fullPath}`, 'ok', els.uploadLog);
+          const row = els.fileList.querySelector(`.file-row[data-id="${pf.id}"] .file-status`);
+          if (row) row.textContent = '✓';
+        });
+      }
+
       els.statusSelect.value = 'uploaded';
-      const skipNote = skipCount ? ` (${skipCount} skipped — already existed)` : '';
-      logLine(`Upload complete${skipNote}. The publish workflow should be running now — check live status in ~30-60s.`, 'ok', els.uploadLog);
+      const skipNote = skipped.length ? ` (${skipped.length} skipped — already existed)` : '';
+      if (toUpload.length) {
+        logLine(`Upload complete${skipNote} — one commit, one workflow run. Check live status in ~30-60s.`, 'ok', els.uploadLog);
+        showUploadCompleteModal({ user, repo, uploadedCount: toUpload.length, skippedCount: skipped.length });
+      } else {
+        logLine(`Nothing to upload${skipNote}.`, 'warn', els.uploadLog);
+      }
       pendingFiles = [];
       renderFileList();
-    } else {
-      logLine(`${failCount} file(s) failed — fix and retry.`, 'warn', els.uploadLog);
+    } catch (e) {
+      logLine(`Upload failed — nothing was committed: ${e.message}`, 'err', els.uploadLog);
     }
     refresh();
     saveCurrentProject();
@@ -2148,7 +2224,7 @@ jobs:
   document.querySelectorAll('.info-btn').forEach(btn => btn.addEventListener('click', () => openModal(btn.dataset.info)));
   els.modalClose.addEventListener('click', closeModal);
   els.modalOverlay.addEventListener('click', (e) => { if (e.target === els.modalOverlay) closeModal(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeRepoPicker(); } });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeRepoPicker(); closeUploadCompleteModal(); } });
 
   /* ---------- existing repo picker ---------- */
   let repoPickerCache = [];
@@ -2235,6 +2311,23 @@ jobs:
   els.repoPickerClose.addEventListener('click', closeRepoPicker);
   els.repoPickerOverlay.addEventListener('click', (e) => { if (e.target === els.repoPickerOverlay) closeRepoPicker(); });
   els.repoPickerSearch.addEventListener('input', () => renderRepoPickerList(els.repoPickerSearch.value));
+
+  /* ---------- upload complete modal ---------- */
+  function closeUploadCompleteModal() { els.uploadCompleteOverlay.classList.remove('open'); }
+
+  function showUploadCompleteModal({ user, repo, uploadedCount, skippedCount }) {
+    const liveUrl = currentPagesUrl || `https://${user}.github.io/${repo}/`;
+    const parts = [];
+    parts.push(`${uploadedCount} file${uploadedCount === 1 ? '' : 's'} pushed in one commit.`);
+    if (skippedCount) parts.push(`${skippedCount} skipped (already existed).`);
+    els.uploadCompleteSummary.textContent = parts.join(' ');
+    els.uploadCompleteLink.href = liveUrl;
+    els.uploadCompleteUrl.textContent = liveUrl;
+    els.uploadCompleteOverlay.classList.add('open');
+  }
+
+  els.uploadCompleteClose.addEventListener('click', closeUploadCompleteModal);
+  els.uploadCompleteOverlay.addEventListener('click', (e) => { if (e.target === els.uploadCompleteOverlay) closeUploadCompleteModal(); });
 
   /* ---------- init ---------- */
   renderFeatureList();
