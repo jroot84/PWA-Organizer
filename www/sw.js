@@ -1,7 +1,8 @@
 // PWA Organizer — Service Worker
-// Bump CACHE_NAME any time index.html or its assets change, so returning
-// users get the update instead of a stale cached copy.
-const CACHE_NAME = "pwa-organizer-cache-v3";
+// App shell (index.html) is network-first, so pushing an update makes it
+// show up on next load automatically — no manual CACHE_NAME bump needed.
+// Icons and manifest stay cache-first since they rarely change.
+const CACHE_NAME = "pwa-organizer-cache-v4";
 
 const PRECACHE_URLS = [
   "./",
@@ -35,6 +36,31 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  const isAppShell =
+    event.request.mode === "navigate" ||
+    event.request.url.endsWith("/") ||
+    event.request.url.endsWith("index.html");
+
+  if (isAppShell) {
+    // Network-first: always try to get the latest version. Only fall back
+    // to whatever's cached if there's no signal at all.
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() =>
+          caches.match(event.request).then((cached) => cached || caches.match("./index.html"))
+        )
+    );
+    return;
+  }
+
+  // Cache-first for static assets — fine to reuse, rarely change.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
