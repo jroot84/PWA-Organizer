@@ -1563,12 +1563,14 @@ jobs:
   goToStep(0);
   if (getToken()) testConnectionUI(); else setConnBadge('none', 'Not connected.');
 
+  // Service worker intentionally not registered — this app runs fine
+  // without offline caching, and a stale/broken sw.js was causing issues.
+  // If a previously-registered SW exists on this origin (from an older
+  // deploy), unregister it so users aren't stuck on cached assets.
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch((err) => {
-        console.error("SW registration failed:", err);
-      });
-    });
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => reg.unregister());
+    }).catch(() => {});
   }
 </script>
 
