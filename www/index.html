@@ -211,6 +211,66 @@
   .check-item label { font-size: 14px; color: var(--text); cursor: pointer; line-height: 1.4; }
   .check-item .hint { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
 
+  .repo-picker-list { display: flex; flex-direction: column; gap: 6px; max-height: 46vh; overflow-y: auto; }
+  .repo-picker-row {
+    display: flex; flex-direction: column; gap: 2px;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+    cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .repo-picker-row:hover { border-color: var(--amber); background: var(--amber-dim); }
+  .repo-picker-name { font-size: 13.5px; font-weight: 600; color: var(--text); }
+  .repo-picker-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  /* ---------- start choice screen ---------- */
+  .start-intro { font-size: 13.5px; color: var(--muted); line-height: 1.6; margin: 4px 0 22px; }
+  .start-choice {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .start-choice-card {
+    display: flex; flex-direction: column; gap: 4px; text-align: left;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 18px; cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease;
+    font-family: var(--sans); color: var(--text);
+  }
+  .start-choice-card:hover { border-color: var(--amber); background: var(--amber-dim); }
+  .start-choice-title { font-size: 15px; font-weight: 700; }
+  .start-choice-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  /* ---------- file upload ---------- */
+  .dropzone {
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    padding: 28px 18px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .dropzone:hover, .dropzone.dragover { border-color: var(--amber); background: var(--amber-dim); }
+  .dropzone-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .dropzone-hint { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+  .file-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .file-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .file-row .file-name {
+    font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; max-width: 34%;
+  }
+  .file-row .file-path {
+    flex: 1; min-width: 0;
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 7px 9px; font-family: var(--mono); font-size: 12px;
+  }
+  .file-row .file-path:focus { outline: none; border-color: var(--amber); }
+  .file-row .file-remove {
+    background: transparent; border: none; color: var(--muted-dim); cursor: pointer;
+    font-size: 16px; padding: 2px 4px; flex-shrink: 0; border-radius: 6px; line-height: 1;
+  }
+  .file-row .file-remove:hover { color: var(--danger); background: rgba(217,106,92,0.12); }
+  .file-row .file-status { flex-shrink: 0; width: 16px; text-align: center; font-size: 13px; }
+
   /* ---------- terminal / output ---------- */
   .terminal {
     background: #0d1015;
@@ -320,11 +380,10 @@
   @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
   .wizard-actions {
-    position: sticky; bottom: var(--nav-h); z-index: 10;
     max-width: 640px; margin: 22px auto 0;
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     background: var(--bg); border-top: 1px solid var(--border);
-    padding: 12px 20px;
+    padding: 16px 20px calc(20px + var(--nav-h));
   }
   .wiz-nav-btn {
     font-family: var(--sans); font-weight: 600; font-size: 13.5px;
@@ -472,18 +531,39 @@
 <div id="view-build" class="view active">
 
   <div class="wizard-progress" id="wizardProgress">
-    <button class="wiz-pill" data-step="0"><span class="dot"></span>1 Identity</button>
-    <button class="wiz-pill" data-step="1"><span class="dot"></span>2 Look</button>
-    <button class="wiz-pill" data-step="2"><span class="dot"></span>3 Offline</button>
-    <button class="wiz-pill" data-step="3"><span class="dot"></span>4 Discipline</button>
-    <button class="wiz-pill" data-step="4"><span class="dot"></span>5 Extras</button>
-    <button class="wiz-pill" data-step="5"><span class="dot"></span>6 Deploy</button>
+    <button class="wiz-pill" data-step="0"><span class="dot"></span>Start</button>
+    <button class="wiz-pill" data-step="1"><span class="dot"></span>1 Identity</button>
+    <button class="wiz-pill" data-step="2"><span class="dot"></span>2 Look</button>
+    <button class="wiz-pill" data-step="3"><span class="dot"></span>3 Repo</button>
+    <button class="wiz-pill" data-step="4"><span class="dot"></span>4 Concept</button>
+    <button class="wiz-pill" data-step="5"><span class="dot"></span>5 Features</button>
+    <button class="wiz-pill" data-step="6"><span class="dot"></span>6 Build</button>
+    <button class="wiz-pill" data-step="7"><span class="dot"></span>7 Query</button>
+    <button class="wiz-pill" data-step="8"><span class="dot"></span>8 Upload</button>
   </div>
 
   <div class="wizard-panels">
 
-    <!-- step 0: identity -->
+    <!-- step 0: start — new repo or existing repo -->
     <div class="wizard-panel active" data-step="0">
+      <div class="section">
+        <div class="section-head-row"><h2>What are you starting with?</h2></div>
+        <div class="start-intro">Pick one to get going — you can always switch later from the Repo step.</div>
+        <div class="start-choice">
+          <button class="start-choice-card" id="startNewRepoBtn">
+            <span class="start-choice-title">Start a new repo</span>
+            <span class="start-choice-desc">Walk through identity, look and feel, and creating the repo from scratch, then build a query for Claude.</span>
+          </button>
+          <button class="start-choice-card" id="startExistingRepoBtn">
+            <span class="start-choice-title">Use an existing repo</span>
+            <span class="start-choice-desc">Pick a repo you already have and jump straight to uploading files — with the option to replace what's there or only add what's new.</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- step 1: identity -->
+    <div class="wizard-panel" data-step="1">
       <div class="section">
         <div class="section-num">01</div>
         <div class="section-head-row"><h2>Project identity</h2><button class="info-btn" data-info="identity" aria-label="About project identity">i</button></div>
@@ -517,8 +597,8 @@
           <label class="field-label" for="statusSelect">Status</label>
           <select id="statusSelect">
             <option value="planning">Planning</option>
-            <option value="icons">Icons generated</option>
             <option value="repo">Repo created</option>
+            <option value="icons">Icons generated</option>
             <option value="uploaded">Files uploaded</option>
             <option value="live">Live</option>
           </select>
@@ -527,7 +607,7 @@
     </div>
 
     <!-- step 1: look and feel -->
-    <div class="wizard-panel" data-step="1">
+    <div class="wizard-panel" data-step="2">
       <div class="section">
         <div class="section-num">02</div>
         <div class="section-head-row"><h2>Look and feel</h2><button class="info-btn" data-info="lookfeel" aria-label="About look and feel">i</button></div>
@@ -547,6 +627,63 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- step 2: create repo & scaffold -->
+    <div class="wizard-panel" data-step="3">
+      <div class="section">
+        <div class="section-num">03</div>
+        <div class="section-head-row"><h2>Create repo &amp; scaffold</h2><button class="info-btn" data-info="deploy" aria-label="About creating the repo">i</button></div>
+        <div class="deploy-card" style="margin-top:0;">
+          <div class="deploy-card-head">
+            <div class="checklist-title">Deploy to GitHub</div>
+            <span class="conn-badge" id="deployConnBadge">not connected</span>
+          </div>
+          <div class="deploy-target" id="deployTarget">github.com/jroot84/repo-name</div>
+          <div class="deploy-actions">
+            <button class="btn-copy" id="deployBtn" style="flex:none;">Create repo &amp; scaffold</button>
+            <button class="btn-reset" id="checkLiveBtn">Check live status</button>
+            <button class="btn-reset" id="setPagesSourceBtn">Set Pages source</button>
+          </div>
+          <div class="deploy-log" id="deployLog"></div>
+          <div class="deploy-links" id="deployLinks">
+            <a id="repoLink" target="_blank" rel="noopener"></a>
+            <a id="pagesLink" target="_blank" rel="noopener" style="display:none"></a>
+          </div>
+          <div class="deploy-note">Creates the repo, uploads the Pages deploy workflow, scaffolds the site-root and icons folders (with placeholder files so empty folders survive git), and turns on Pages. Safe to run again — existing pieces are left in place.</div>
+        </div>
+
+        <button class="yaml-toggle" id="useExistingRepoBtn" style="margin-top:14px;">Use an existing repo instead →</button>
+
+        <button class="yaml-toggle" id="toggleYamlBtn">+ View publish workflow (.yml)</button>
+        <div class="yaml-panel" id="yamlPanel" style="display:none">
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <div class="fname">deploy-pages.yml</div>
+              <div style="width:40px"></div>
+            </div>
+            <div class="terminal-body" id="yamlOutput"></div>
+          </div>
+          <div class="copy-bar">
+            <button class="btn-copy" id="copyYamlBtn">Copy YAML</button>
+            <button class="btn-download" id="downloadYamlBtn">Download .yml</button>
+          </div>
+          <div class="readiness-note">This gets uploaded automatically when you create the repo above — this is just here for reference.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- step 3: app concept -->
+    <div class="wizard-panel" data-step="4">
+      <div class="section">
+        <div class="section-num">04</div>
+        <div class="section-head-row"><h2>App concept</h2><button class="info-btn" data-info="concept" aria-label="About the app concept">i</button></div>
+        <div class="field">
+          <label class="field-label" for="appConcept">What does this app do?</label>
+          <textarea id="appConcept" placeholder="e.g. a single-screen macro tracker — log meals against daily targets, see running totals, no accounts or backend" style="min-height:90px;"></textarea>
+        </div>
         <div class="field">
           <label class="field-label" for="iconConcept">Icon concept (one line — Claude generates the set from this)</label>
           <textarea id="iconConcept" placeholder="e.g. minimal line-art stopwatch over a track lane, flat color, no gradients"></textarea>
@@ -554,10 +691,25 @@
       </div>
     </div>
 
-    <!-- step 2: offline -->
-    <div class="wizard-panel" data-step="2">
+    <!-- step 4: features -->
+    <div class="wizard-panel" data-step="5">
       <div class="section">
-        <div class="section-num">03</div>
+        <div class="section-num">05</div>
+        <div class="section-head-row"><h2>Features</h2><button class="info-btn" data-info="features" aria-label="About features">i</button></div>
+        <div class="checklist" style="margin-bottom:0;">
+          <div class="checklist-head">
+            <div class="checklist-title">Select what this app needs</div>
+            <div class="checklist-count" id="featureCount">0 / 10</div>
+          </div>
+          <div id="featureList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- step 5: offline, discipline & extra -->
+    <div class="wizard-panel" data-step="6">
+      <div class="section">
+        <div class="section-num">06</div>
         <div class="section-head-row"><h2>Offline behavior</h2><button class="info-btn" data-info="offline" aria-label="About offline behavior">i</button></div>
         <div class="radio-group" id="offlineGroup">
           <label class="radio-option">
@@ -576,12 +728,9 @@
           </label>
         </div>
       </div>
-    </div>
 
-    <!-- step 3: build discipline -->
-    <div class="wizard-panel" data-step="3">
       <div class="section">
-        <div class="section-num">04</div>
+        <div class="section-num">07</div>
         <div class="section-head-row"><h2>Build discipline</h2><button class="info-btn" data-info="discipline" aria-label="About build discipline">i</button></div>
         <div class="radio-group" id="disciplineGroup">
           <label class="radio-option">
@@ -607,12 +756,9 @@
           </label>
         </div>
       </div>
-    </div>
 
-    <!-- step 4: extras -->
-    <div class="wizard-panel" data-step="4">
       <div class="section">
-        <div class="section-num">05</div>
+        <div class="section-num">08</div>
         <div class="section-head-row"><h2>Anything else</h2><button class="info-btn" data-info="extra" aria-label="About additional requirements">i</button></div>
         <div class="field">
           <label class="field-label" for="extraReqs">Additional requirements (optional)</label>
@@ -621,17 +767,15 @@
       </div>
     </div>
 
-    <!-- step 5: review + deploy -->
-    <div class="wizard-panel" data-step="5">
+    <!-- step 6: query checklist + output -->
+    <div class="wizard-panel" data-step="7">
       <div class="section">
-        <div class="section-num">06</div>
-        <div class="section-head-row"><h2>Review &amp; deploy</h2><button class="info-btn" data-info="deploy" aria-label="About deploying">i</button></div>
-
+        <div class="section-num">09</div>
+        <div class="section-head-row"><h2>Your query for Claude</h2><button class="info-btn" data-info="checklist" aria-label="About this checklist">i</button></div>
         <div class="checklist">
           <div class="checklist-head">
             <div class="checklist-head-row">
-              <div class="checklist-title">Pre-flight checklist</div>
-              <button class="info-btn" data-info="checklist" aria-label="About this checklist">i</button>
+              <div class="checklist-title">Query checklist</div>
             </div>
             <div class="checklist-count" id="checkCount">0 / 5</div>
           </div>
@@ -642,15 +786,15 @@
             </label>
           </div>
           <div class="check-item">
-            <input type="checkbox" id="chk-repo">
-            <label for="chk-repo">Repo created on GitHub
-              <span class="hint">Pages source set to GitHub Actions, or the /www folder on main.</span>
-            </label>
-          </div>
-          <div class="check-item">
             <input type="checkbox" id="chk-colors">
             <label for="chk-colors">Theme and background color chosen
               <span class="hint">These drive the manifest, the browser chrome color, and the icon palette.</span>
+            </label>
+          </div>
+          <div class="check-item">
+            <input type="checkbox" id="chk-concept">
+            <label for="chk-concept">App concept described
+              <span class="hint">What it does, in a sentence or two — this anchors everything Claude builds.</span>
             </label>
           </div>
           <div class="check-item">
@@ -676,56 +820,80 @@
           <div class="terminal-body" id="output"></div>
         </div>
         <div class="copy-bar">
-          <button class="btn-copy" id="copyBtn">Copy details</button>
+          <button class="btn-copy" id="copyBtn">Copy query for Claude</button>
         </div>
         <div class="save-history-bar" style="display:flex;gap:10px;align-items:center;margin-top:14px;">
           <button class="btn-reset" id="saveHistoryBtn" style="border-color:var(--teal);color:var(--teal);">Save to history</button>
           <span class="save-hint" id="saveHint" style="font-size:11.5px;color:var(--muted);font-family:var(--mono);"></span>
         </div>
         <div class="readiness-note" id="readinessNote"></div>
+        <div class="readiness-note">Paste this into a Claude conversation. When it gives you back index.html, manifest.json, icons, and any other files, come back here and move to the last step to upload them.</div>
+      </div>
+    </div>
 
-        <button class="yaml-toggle" id="toggleYamlBtn">+ Generate publish workflow (.yml)</button>
-        <div class="yaml-panel" id="yamlPanel" style="display:none">
-          <div class="terminal">
-            <div class="terminal-bar">
-              <div class="dots"><span></span><span></span><span></span></div>
-              <div class="fname">deploy-pages.yml</div>
-              <div style="width:40px"></div>
-            </div>
-            <div class="terminal-body" id="yamlOutput"></div>
+    <!-- step 7: upload files + publish -->
+    <div class="wizard-panel" data-step="8">
+      <div class="section">
+        <div class="section-num">10</div>
+        <div class="section-head-row"><h2>Upload &amp; publish</h2><button class="info-btn" data-info="upload" aria-label="About uploading files">i</button></div>
+        <div class="deploy-target" id="uploadTarget" style="margin-bottom:14px;">github.com/jroot84/repo-name</div>
+
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" multiple style="display:none;">
+          <div class="dropzone-label">Drop files here, or tap to browse</div>
+          <div class="dropzone-hint">Select every file Claude gave you at once — index.html, manifest.json, sw.js, icons, anything else.</div>
+        </div>
+
+        <div class="radio-group" id="conflictModeGroup" style="margin-top:14px;">
+          <label class="radio-option">
+            <input type="radio" name="conflictMode" value="replace" checked>
+            <span>
+              <span class="opt-title">Replace files that already exist</span>
+              <span class="opt-desc">Overwrites anything already at that path in the repo. Use this for a normal update.</span>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="conflictMode" value="skip">
+            <span>
+              <span class="opt-title">Only add new files</span>
+              <span class="opt-desc">Skips any file whose path already exists in the repo, leaving it untouched.</span>
+            </span>
+          </label>
+        </div>
+
+        <div id="fileListWrap" style="display:none;">
+          <div class="checklist-head" style="margin-top:18px;">
+            <div class="checklist-title">Files to upload</div>
+            <div class="checklist-count" id="fileCount">0</div>
           </div>
-          <div class="copy-bar">
-            <button class="btn-copy" id="copyYamlBtn">Copy YAML</button>
-            <button class="btn-download" id="downloadYamlBtn">Download .yml</button>
-          </div>
-          <div class="readiness-note">Same workflow works for every PWA repo — it just reads the site root folder you picked above.</div>
+          <div id="fileList" class="file-list"></div>
+          <div class="readiness-note">Destination paths are guessed automatically (icon-looking files go in <code>icons/</code>, everything else goes in the site root) — tap a path to fix it before uploading. The dot on the left shows whether that path already exists in the repo (<span style="color:var(--amber);">●</span> exists, <span style="color:var(--teal);">●</span> new).</div>
         </div>
 
         <div class="deploy-card">
           <div class="deploy-card-head">
-            <div class="checklist-title">Deploy to GitHub</div>
-            <span class="conn-badge" id="deployConnBadge">not connected</span>
+            <div class="checklist-title">Publish</div>
+            <span class="conn-badge" id="uploadConnBadge">not connected</span>
           </div>
-          <div class="deploy-target" id="deployTarget">github.com/jroot84/repo-name</div>
           <div class="deploy-actions">
-            <button class="btn-copy" id="deployBtn" style="flex:none;">Create repo &amp; enable Pages</button>
-            <button class="btn-reset" id="checkLiveBtn">Check live status</button>
+            <button class="btn-copy" id="uploadBtn" style="flex:none;">Upload &amp; publish</button>
+            <button class="btn-reset" id="checkLiveBtn2">Check live status</button>
           </div>
-          <div class="deploy-log" id="deployLog"></div>
-          <div class="deploy-links" id="deployLinks">
-            <a id="repoLink" target="_blank" rel="noopener"></a>
-            <a id="pagesLink" target="_blank" rel="noopener" style="display:none"></a>
+          <div class="deploy-log" id="uploadLog"></div>
+          <div class="deploy-links" id="uploadLinks">
+            <a id="repoLink2" target="_blank" rel="noopener"></a>
+            <a id="pagesLink2" target="_blank" rel="noopener" style="display:none"></a>
           </div>
-          <div class="deploy-note">This creates the repo, uploads the deploy workflow, and turns on Pages. It doesn't push your app's actual code — that's the part you still build with Claude and commit yourself.</div>
+          <div class="deploy-note">Pushing files to the repo triggers the publish workflow automatically — give it 30–60 seconds after upload, then check live status.</div>
         </div>
       </div>
     </div>
 
   </div>
 
-  <div class="wizard-actions">
+  <div class="wizard-actions" id="wizActions">
     <button class="wiz-nav-btn" id="wizBack">← Back</button>
-    <div class="wizard-step-label" id="wizStepLabel">Step 1 of 6</div>
+    <div class="wizard-step-label" id="wizStepLabel">Step 1 of 9</div>
     <button class="wiz-nav-btn" id="wizNext">Next →</button>
   </div>
 </div>
@@ -775,6 +943,28 @@
       <p>Create a <strong style="color:var(--amber)">classic</strong> token at <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener">github.com/settings/tokens/new</a> with the <code>repo</code> and <code>workflow</code> scopes. That's enough to create repositories, upload files, and enable Pages on your behalf — nothing broader is needed.</p>
       <p>The token is stored only in this browser's local storage on this device, and sent straight to <code>api.github.com</code>. Treat it like a password — use "Clear" above if you're on a shared device.</p>
     </div>
+
+    <div class="section-head-row" style="margin:26px 0 16px;">
+      <h2 style="margin:0;">Default Pages source</h2>
+      <button class="info-btn" data-info="pagessource" aria-label="About Pages source">i</button>
+    </div>
+    <div class="radio-group" id="pagesSourceGroup">
+      <label class="radio-option">
+        <input type="radio" name="pagesSource" value="workflow" checked>
+        <span>
+          <span class="opt-title">GitHub Actions</span>
+          <span class="opt-desc">Pages is built by the deploy-pages.yml workflow. What every project this tool scaffolds expects — leave this selected unless you have a reason not to.</span>
+        </span>
+      </label>
+      <label class="radio-option">
+        <input type="radio" name="pagesSource" value="legacy">
+        <span>
+          <span class="opt-title">Deploy from a branch</span>
+          <span class="opt-desc">The older, workflow-free way — Pages serves a branch/folder directly. Only pick this if a repo is already set up that way.</span>
+        </span>
+      </label>
+    </div>
+    <div class="readiness-note">Applied automatically whenever this tool creates a repo or connects to an existing one — use "Set Pages source" on the Build tab to re-apply it to a repo at any time.</div>
   </div>
 </div>
 
@@ -794,6 +984,22 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="repoPickerOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Use an existing repo</h3>
+      <button class="modal-close" id="repoPickerClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:12px;">
+        <input type="text" id="repoPickerSearch" placeholder="Filter repos…" style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;font-size:14px;font-family:var(--sans);">
+      </div>
+      <div id="repoPickerStatus" style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:8px;"></div>
+      <div id="repoPickerList" class="repo-picker-list"></div>
+    </div>
+  </div>
+</div>
+
 <script>
   const els = {
     appName: document.getElementById('appName'),
@@ -806,7 +1012,10 @@
     bgColor: document.getElementById('bgColor'),
     bgColorPicker: document.getElementById('bgColorPicker'),
     iconConcept: document.getElementById('iconConcept'),
+    appConcept: document.getElementById('appConcept'),
     extraReqs: document.getElementById('extraReqs'),
+    featureList: document.getElementById('featureList'),
+    featureCount: document.getElementById('featureCount'),
     output: document.getElementById('output'),
     copyBtn: document.getElementById('copyBtn'),
     checkCount: document.getElementById('checkCount'),
@@ -833,6 +1042,9 @@
     wizBack: document.getElementById('wizBack'),
     wizNext: document.getElementById('wizNext'),
     wizStepLabel: document.getElementById('wizStepLabel'),
+    wizActions: document.getElementById('wizActions'),
+    startNewRepoBtn: document.getElementById('startNewRepoBtn'),
+    startExistingRepoBtn: document.getElementById('startExistingRepoBtn'),
     // settings / github
     ghToken: document.getElementById('ghToken'),
     toggleTokenVis: document.getElementById('toggleTokenVis'),
@@ -849,13 +1061,37 @@
     deployLinks: document.getElementById('deployLinks'),
     repoLink: document.getElementById('repoLink'),
     pagesLink: document.getElementById('pagesLink'),
+    // upload / publish
+    uploadTarget: document.getElementById('uploadTarget'),
+    dropzone: document.getElementById('dropzone'),
+    fileInput: document.getElementById('fileInput'),
+    fileListWrap: document.getElementById('fileListWrap'),
+    fileList: document.getElementById('fileList'),
+    fileCount: document.getElementById('fileCount'),
+    uploadConnBadge: document.getElementById('uploadConnBadge'),
+    uploadBtn: document.getElementById('uploadBtn'),
+    checkLiveBtn2: document.getElementById('checkLiveBtn2'),
+    uploadLog: document.getElementById('uploadLog'),
+    uploadLinks: document.getElementById('uploadLinks'),
+    repoLink2: document.getElementById('repoLink2'),
+    pagesLink2: document.getElementById('pagesLink2'),
+    // existing repo / pages source
+    useExistingRepoBtn: document.getElementById('useExistingRepoBtn'),
+    setPagesSourceBtn: document.getElementById('setPagesSourceBtn'),
+    repoPickerOverlay: document.getElementById('repoPickerOverlay'),
+    repoPickerClose: document.getElementById('repoPickerClose'),
+    repoPickerSearch: document.getElementById('repoPickerSearch'),
+    repoPickerStatus: document.getElementById('repoPickerStatus'),
+    repoPickerList: document.getElementById('repoPickerList'),
   };
 
   let currentProjectId = null;
   let currentStep = 0;
   let currentRepoUrl = '';
   let currentPagesUrl = '';
-  const TOTAL_STEPS = 6;
+  let pendingFiles = []; // { id, file, path }
+  const confirmedNonEmptyRepos = new Set(); // "user/repo" already verified to have a first commit this session
+  const TOTAL_STEPS = 9;
 
   const STATUS_META = {
     planning: { label: 'Planning',        color: '#8b93a5', bg: '#252b35', border: '#3a4252' },
@@ -871,7 +1107,41 @@
   }
   function saveProjects(list) { localStorage.setItem('pwaOrganizerProjects', JSON.stringify(list)); }
 
-  const checkboxes = ['chk-name','chk-repo','chk-colors','chk-icon','chk-offline'].map(id => document.getElementById(id));
+  const checkboxes = ['chk-name','chk-colors','chk-concept','chk-icon','chk-offline'].map(id => document.getElementById(id));
+
+  const FEATURE_OPTIONS = [
+    { id: 'persist',     label: 'Saves data locally',        desc: 'Persist user data between sessions with localStorage/IndexedDB — nothing lost on refresh or reload.' },
+    { id: 'installable', label: 'Installable / Add to Home Screen', desc: 'Manifest configured so the browser offers an install / Add-to-Home-Screen prompt.' },
+    { id: 'export',      label: 'Data export',               desc: 'Let the user export their data (CSV/JSON download).' },
+    { id: 'import',      label: 'Data import',               desc: 'Let the user import data from a file.' },
+    { id: 'darkmode',    label: 'Dark mode',                 desc: 'Include a dark theme, either as the default or as a toggle.' },
+    { id: 'settings',    label: 'Settings screen',           desc: 'A dedicated settings/preferences screen.' },
+    { id: 'charts',      label: 'Charts / data viz',         desc: 'Charts or visual summaries of data.' },
+    { id: 'search',      label: 'Search / filter',           desc: 'Search or filter through content/data.' },
+    { id: 'print',       label: 'Print-friendly view',       desc: 'A print-optimized layout/stylesheet.' },
+    { id: 'multistep',   label: 'Multi-step flow',           desc: 'A wizard-style, multi-step form or navigation flow.' },
+  ];
+
+  function renderFeatureList() {
+    els.featureList.innerHTML = FEATURE_OPTIONS.map(f => `
+      <div class="check-item">
+        <input type="checkbox" id="feat-${f.id}" data-feature="${f.id}">
+        <label for="feat-${f.id}">${esc(f.label)}</label>
+      </div>
+    `).join('');
+    FEATURE_OPTIONS.forEach(f => {
+      document.getElementById(`feat-${f.id}`).addEventListener('change', () => { updateFeatureCount(); refresh(); });
+    });
+  }
+  function getCheckedFeatures() {
+    return FEATURE_OPTIONS.filter(f => {
+      const el = document.getElementById(`feat-${f.id}`);
+      return el && el.checked;
+    });
+  }
+  function updateFeatureCount() {
+    els.featureCount.textContent = `${getCheckedFeatures().length} / ${FEATURE_OPTIONS.length}`;
+  }
 
   function ph(val, placeholder) { return val && val.trim() ? esc(val) : '<span class="ph">' + placeholder + '</span>'; }
   function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -894,9 +1164,11 @@
     const theme = plain(els.themeColor.value, '#______');
     const bg = plain(els.bgColor.value, '#______');
     const icon = plain(els.iconConcept.value, '[one line — symbol/imagery/style]');
+    const concept = plain(els.appConcept.value, '[what the app does, in a sentence or two]');
     const offline = offlineValue();
     const discipline = disciplineLabel();
     const extra = plain(els.extraReqs.value, '');
+    const features = getCheckedFeatures();
 
     const offlineBlock = offline === 'yes'
       ? `Build a service worker on the first pass — cache the app shell (index.html,
@@ -914,7 +1186,12 @@ THEME COLOR: ${theme}
 BACKGROUND COLOR: ${bg}
 ICON CONCEPT: ${icon}
 ICONS: Claude generates the full set (192, 512, maskable, apple-touch,
-       favicon) as code in ${root === '(repo root)' ? '' : root}icons/ — no files needed from me.
+       favicon) as code — filenames should start with "icon-", "apple-touch-",
+       "maskable-", or "favicon" so they sort into the icons folder automatically
+       when I upload everything back through PWA Organizer.
+
+APP CONCEPT:
+${concept}
 
 BUILD DISCIPLINE: ${discipline}
 
@@ -922,13 +1199,18 @@ OFFLINE BEHAVIOR:
 ${offlineBlock}
 `;
 
+    out += `\nFEATURES:\n`;
+    out += features.length
+      ? features.map(f => `- ${f.desc}`).join('\n') + '\n'
+      : '- (none selected — keep the build minimal, just the core concept above)\n';
+
     if (extra) { out += `\nADDITIONAL REQUIREMENTS:\n${extra}\n`; }
 
     out += `
 ---
 Before writing any app code, do these in order:
-1. Generate the full icon set as code (don't ask me for image files) and
-   save it into the icons folder using consistent, predictable filenames
+1. Generate the full icon set as code (don't ask me for image files),
+   using the filename convention above so it uploads to the right place
 2. Build manifest.json using RELATIVE paths only (the site is served from
    a subfolder, not domain root) — set start_url and scope to "./" and
    point icon src fields at the exact filenames from step 1
@@ -936,8 +1218,10 @@ Before writing any app code, do these in order:
       ? 'Build the service worker per the offline behavior above, and wire\n   up its registration in index.html'
       : 'Confirm no service worker registration is present, so nothing 404s'}
 4. Confirm index.html correctly links the manifest and icons
-5. Give me the exact folder structure to create before I push, so nothing
-   404s on first deploy
+5. Give me every file as a separate downloadable artifact, with its final
+   filename clearly labeled — I'll upload them all at once through
+   PWA Organizer's Upload & Publish step, and they need to be immediately
+   recognizable by filename alone (no guessing which code block is which file)
 
 Then generate the files.`;
 
@@ -963,18 +1247,18 @@ Then generate the files.`;
     const checked = checkboxes.filter(c => c.checked).length;
     els.checkCount.textContent = `${checked} / 5`;
 
-    const requiredFilled = [els.appName.value, els.repoName.value, els.iconConcept.value].filter(v => v.trim()).length;
-    els.statusChip.textContent = `${requiredFilled} / 3 fields ready`;
-    els.statusChip.style.color = requiredFilled === 3 ? 'var(--teal)' : 'var(--amber)';
-    els.statusChip.style.background = requiredFilled === 3 ? 'var(--teal-dim)' : 'var(--amber-dim)';
-    els.statusChip.style.borderColor = requiredFilled === 3 ? '#2c5a54' : '#6b5225';
+    const requiredFilled = [els.appName.value, els.repoName.value, els.appConcept.value, els.iconConcept.value].filter(v => v.trim()).length;
+    els.statusChip.textContent = `${requiredFilled} / 4 fields ready`;
+    els.statusChip.style.color = requiredFilled === 4 ? 'var(--teal)' : 'var(--amber)';
+    els.statusChip.style.background = requiredFilled === 4 ? 'var(--teal-dim)' : 'var(--amber-dim)';
+    els.statusChip.style.borderColor = requiredFilled === 4 ? '#2c5a54' : '#6b5225';
 
-    if (requiredFilled < 3) {
-      els.readinessNote.textContent = 'Fill in app name, repo name, and icon concept for a complete block.';
+    if (requiredFilled < 4) {
+      els.readinessNote.textContent = 'Fill in app name, repo name, app concept, and icon concept for a complete block.';
     } else if (checked < 5) {
-      els.readinessNote.textContent = `${5 - checked} pre-flight item${5-checked === 1 ? '' : 's'} still unchecked — worth confirming before you push.`;
+      els.readinessNote.textContent = `${5 - checked} checklist item${5-checked === 1 ? '' : 's'} still unchecked — worth confirming before you copy.`;
     } else {
-      els.readinessNote.textContent = 'Ready. Copy and paste this into your Claude project instructions.';
+      els.readinessNote.textContent = 'Ready. Copy and paste this into your Claude conversation.';
     }
   }
 
@@ -982,6 +1266,7 @@ Then generate the files.`;
     const user = plain(els.ghUser.value, 'username');
     const repo = plain(els.repoName.value, 'repo-name');
     els.deployTarget.textContent = `github.com/${user}/${repo}`;
+    if (els.uploadTarget) els.uploadTarget.textContent = `github.com/${user}/${repo}`;
   }
 
   function updatePillState() {
@@ -989,38 +1274,52 @@ Then generate the files.`;
       const step = +p.dataset.step;
       p.classList.toggle('active', step === currentStep);
       let done = true;
-      if (step === 0) done = !!(plain(els.appName.value,'') && plain(els.repoName.value,''));
-      if (step === 1) done = !!plain(els.iconConcept.value,'');
+      if (step === 1) done = !!(plain(els.appName.value,'') && plain(els.repoName.value,''));
+      if (step === 3) done = !!currentRepoUrl;
+      if (step === 4) done = !!(plain(els.appConcept.value,'') && plain(els.iconConcept.value,''));
       p.classList.toggle('done', done);
     });
   }
 
   function updateWizardNav() {
-    els.wizBack.style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+    els.wizActions.style.display = currentStep === 0 ? 'none' : 'flex';
+    els.wizBack.style.visibility = currentStep <= 1 ? 'hidden' : 'visible';
     const isLast = currentStep === TOTAL_STEPS - 1;
     els.wizNext.style.display = isLast ? 'none' : 'inline-block';
     els.wizStepLabel.textContent = `Step ${currentStep+1} of ${TOTAL_STEPS}`;
-    const step0ok = !!(plain(els.appName.value,'') && plain(els.repoName.value,''));
-    els.wizNext.disabled = currentStep === 0 && !step0ok;
+    const step1ok = !!(plain(els.appName.value,'') && plain(els.repoName.value,''));
+    els.wizNext.disabled = currentStep === 1 && !step1ok;
   }
 
   function renderDeployLinks() {
-    if (currentRepoUrl) {
-      els.repoLink.href = currentRepoUrl;
-      els.repoLink.textContent = currentRepoUrl;
-      els.deployLinks.style.display = 'flex';
-    } else {
-      els.repoLink.removeAttribute('href');
-      els.repoLink.textContent = '';
-    }
-    if (currentPagesUrl) {
-      els.pagesLink.href = currentPagesUrl;
-      els.pagesLink.textContent = currentPagesUrl;
-      els.pagesLink.style.display = 'inline';
-      els.deployLinks.style.display = 'flex';
-    } else {
-      els.pagesLink.style.display = 'none';
-    }
+    [
+      { linkEl: els.repoLink, wrapEl: els.deployLinks },
+      { linkEl: els.repoLink2, wrapEl: els.uploadLinks },
+    ].forEach(({ linkEl, wrapEl }) => {
+      if (!linkEl) return;
+      if (currentRepoUrl) {
+        linkEl.href = currentRepoUrl;
+        linkEl.textContent = currentRepoUrl;
+        if (wrapEl) wrapEl.style.display = 'flex';
+      } else {
+        linkEl.removeAttribute('href');
+        linkEl.textContent = '';
+      }
+    });
+    [
+      { linkEl: els.pagesLink, wrapEl: els.deployLinks },
+      { linkEl: els.pagesLink2, wrapEl: els.uploadLinks },
+    ].forEach(({ linkEl, wrapEl }) => {
+      if (!linkEl) return;
+      if (currentPagesUrl) {
+        linkEl.href = currentPagesUrl;
+        linkEl.textContent = currentPagesUrl;
+        linkEl.style.display = 'inline';
+        if (wrapEl) wrapEl.style.display = 'flex';
+      } else {
+        linkEl.style.display = 'none';
+      }
+    });
   }
 
   function refresh() {
@@ -1042,11 +1341,13 @@ Then generate the files.`;
       themeColor: els.themeColor.value,
       bgColor: els.bgColor.value,
       iconConcept: els.iconConcept.value,
+      appConcept: els.appConcept.value,
       extraReqs: els.extraReqs.value,
       status: els.statusSelect.value,
       offline: offlineValue(),
       discipline: document.querySelector('input[name="discipline"]:checked').value,
       checks: checkboxes.map(c => c.checked),
+      features: FEATURE_OPTIONS.map(f => (document.getElementById(`feat-${f.id}`) || {}).checked || false),
       repoUrl: currentRepoUrl,
       pagesUrl: currentPagesUrl,
     };
@@ -1063,14 +1364,23 @@ Then generate the files.`;
     els.bgColor.value = data.bgColor || '#12151a';
     els.bgColorPicker.value = /^#[0-9a-fA-F]{6}$/.test(data.bgColor) ? data.bgColor : '#12151a';
     els.iconConcept.value = data.iconConcept || '';
+    els.appConcept.value = data.appConcept || '';
     els.extraReqs.value = data.extraReqs || '';
     els.statusSelect.value = data.status || 'planning';
     document.querySelector(`input[name="offline"][value="${data.offline || 'yes'}"]`).checked = true;
     document.querySelector(`input[name="discipline"][value="${data.discipline || 'tdd'}"]`).checked = true;
     if (Array.isArray(data.checks)) checkboxes.forEach((c, i) => c.checked = !!data.checks[i]);
+    FEATURE_OPTIONS.forEach((f, i) => {
+      const el = document.getElementById(`feat-${f.id}`);
+      if (el) el.checked = Array.isArray(data.features) ? !!data.features[i] : false;
+    });
+    updateFeatureCount();
     currentRepoUrl = data.repoUrl || '';
     currentPagesUrl = data.pagesUrl || '';
     els.deployLog.innerHTML = '';
+    els.uploadLog.innerHTML = '';
+    pendingFiles = [];
+    renderFileList();
     renderDeployLinks();
   }
 
@@ -1116,7 +1426,7 @@ Then generate the files.`;
           refresh();
           renderHistory();
           switchView('build');
-          goToStep(5);
+          goToStep(7);
         });
         card.querySelector('.hc-delete').addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1192,6 +1502,10 @@ jobs:
   function setTokenStorage(t) { if (t) localStorage.setItem(GH_TOKEN_KEY, t); else localStorage.removeItem(GH_TOKEN_KEY); }
   function b64(str) { return btoa(unescape(encodeURIComponent(str))); }
 
+  const PAGES_SOURCE_KEY = 'pwaOrganizerPagesSource';
+  function getPagesSource() { return localStorage.getItem(PAGES_SOURCE_KEY) || 'workflow'; }
+  function setPagesSource(v) { localStorage.setItem(PAGES_SOURCE_KEY, v); }
+
   async function ghFetch(path, opts = {}) {
     const token = getToken();
     if (!token) throw new Error('No GitHub token saved — add one in Settings.');
@@ -1219,24 +1533,78 @@ jobs:
     return data.login;
   }
 
+  async function ensureRepoNotEmpty(user, repo, logTarget) {
+    const key = `${user}/${repo}`;
+    if (confirmedNonEmptyRepos.has(key)) return;
+
+    let defaultBranch = 'main';
+    try {
+      const repoInfo = await ghFetch(`/repos/${user}/${repo}`);
+      defaultBranch = repoInfo.default_branch || 'main';
+    } catch (e) { /* fall back to 'main' */ }
+
+    let hasCommits = true;
+    try {
+      await ghFetch(`/repos/${user}/${repo}/git/ref/heads/${defaultBranch}`);
+    } catch (e) {
+      hasCommits = false;
+    }
+
+    if (!hasCommits) {
+      logLine('Repo has no commits yet — seeding an initial commit so uploads can attach to a branch…', null, logTarget);
+      const blob = await ghFetch(`/repos/${user}/${repo}/git/blobs`, {
+        method: 'POST',
+        body: JSON.stringify({ content: b64(`# ${repo}\n\nScaffolded by PWA Organizer.\n`), encoding: 'base64' }),
+      });
+      const tree = await ghFetch(`/repos/${user}/${repo}/git/trees`, {
+        method: 'POST',
+        body: JSON.stringify({ tree: [{ path: 'README.md', mode: '100644', type: 'blob', sha: blob.sha }] }),
+      });
+      const commit = await ghFetch(`/repos/${user}/${repo}/git/commits`, {
+        method: 'POST',
+        body: JSON.stringify({ message: 'Initial commit (seeded by PWA Organizer)', tree: tree.sha }),
+      });
+      await ghFetch(`/repos/${user}/${repo}/git/refs`, {
+        method: 'POST',
+        body: JSON.stringify({ ref: `refs/heads/${defaultBranch}`, sha: commit.sha }),
+      });
+      logLine('Initial commit created — this repo is no longer empty.', 'ok', logTarget);
+    }
+    confirmedNonEmptyRepos.add(key);
+  }
+
   async function upsertFile(user, repo, path, content, message) {
+    return upsertFileRaw(user, repo, path, b64(content), message);
+  }
+
+  async function upsertFileRaw(user, repo, path, base64Content, message) {
     let sha;
     try {
       const existing = await ghFetch(`/repos/${user}/${repo}/contents/${path}`);
       sha = existing.sha;
     } catch (e) { /* file doesn't exist yet */ }
-    const body = { message, content: b64(content) };
+    const body = { message, content: base64Content };
     if (sha) body.sha = sha;
     return ghFetch(`/repos/${user}/${repo}/contents/${path}`, { method: 'PUT', body: JSON.stringify(body) });
   }
 
-  function logLine(msg, type) {
+  function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+      reader.onerror = () => reject(new Error(`Couldn't read ${file.name}`));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function logLine(msg, type, target) {
+    const logEl = target || els.deployLog;
     const div = document.createElement('div');
     div.className = 'log-line' + (type ? ' log-' + type : '');
     const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     div.innerHTML = `<span class="log-ts">${ts}</span>${esc(msg)}`;
-    els.deployLog.appendChild(div);
-    els.deployLog.scrollTop = els.deployLog.scrollHeight;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
   }
 
   function setConnBadge(state, text) {
@@ -1247,7 +1615,7 @@ jobs:
       checking: { color: 'var(--amber)', bg: 'var(--amber-dim)', border: '#6b5225' },
     };
     const s = map[state] || map.none;
-    [els.connStatus, els.deployConnBadge].forEach(el => {
+    [els.connStatus, els.deployConnBadge, els.uploadConnBadge].forEach(el => {
       if (!el) return;
       el.textContent = text;
       el.style.color = s.color;
@@ -1268,6 +1636,10 @@ jobs:
   }
 
   els.ghToken.value = getToken();
+  document.querySelector(`input[name="pagesSource"][value="${getPagesSource()}"]`).checked = true;
+  document.querySelectorAll('input[name="pagesSource"]').forEach(r => {
+    r.addEventListener('change', () => setPagesSource(document.querySelector('input[name="pagesSource"]:checked').value));
+  });
   els.toggleTokenVis.addEventListener('click', () => {
     const hidden = els.ghToken.type === 'password';
     els.ghToken.type = hidden ? 'text' : 'password';
@@ -1319,26 +1691,32 @@ jobs:
         }
       }
 
+      await ensureRepoNotEmpty(user, repo, els.deployLog);
+
       logLine('Uploading deploy-pages.yml…');
       await upsertFile(user, repo, '.github/workflows/deploy-pages.yml', buildWorkflowYaml(), 'Add GitHub Pages deploy workflow');
       logLine('Workflow uploaded.', 'ok');
 
-      logLine('Enabling Pages (source: GitHub Actions)…');
+      const isRoot = els.siteRoot.value === '(repo root)';
+      const rootPrefix = isRoot ? '' : els.siteRoot.value; // already ends in '/'
+      logLine(`Scaffolding folders${isRoot ? '' : ` under ${rootPrefix}`}…`);
+      const gitkeepMsg = 'Scaffold site-root/icons folders';
       try {
-        await ghFetch(`/repos/${user}/${repo}/pages`, { method: 'POST', body: JSON.stringify({ build_type: 'workflow' }) });
-        logLine('Pages enabled.', 'ok');
+        await upsertFile(user, repo, `${rootPrefix}icons/.gitkeep`, '', gitkeepMsg);
+        if (!isRoot) await upsertFile(user, repo, `${rootPrefix}.gitkeep`, '', gitkeepMsg);
+        logLine('Folders scaffolded — ready for your www files.', 'ok');
       } catch (e) {
-        if (/already exists/i.test(e.message)) logLine('Pages already enabled.', 'warn');
-        else throw e;
+        logLine(`Couldn't scaffold folders: ${e.message}`, 'warn');
       }
 
-      document.getElementById('chk-repo').checked = true;
-      if (['planning', 'icons'].includes(els.statusSelect.value)) els.statusSelect.value = 'repo';
+      await applyPagesSource(user, repo, els.deployLog);
+
+      if (els.statusSelect.value === 'planning') els.statusSelect.value = 'repo';
       currentRepoUrl = repoData.html_url;
       renderDeployLinks();
       refresh();
       saveCurrentProject();
-      logLine('Done. Push your app files to this repo whenever they’re ready.', 'ok');
+      logLine('Done. Move to step 2 to build your query, then step 3 to upload files.', 'ok');
     } catch (e) {
       logLine(`Failed: ${e.message}`, 'err');
     } finally {
@@ -1348,33 +1726,223 @@ jobs:
     }
   });
 
-  els.checkLiveBtn.addEventListener('click', async () => {
+  async function applyPagesSource(user, repo, logTarget) {
+    const source = getPagesSource();
+    const label = source === 'workflow' ? 'GitHub Actions' : 'Deploy from a branch';
+    logLine(`Setting Pages source to ${label}…`, null, logTarget);
+    try {
+      await ghFetch(`/repos/${user}/${repo}/pages`, { method: 'POST', body: JSON.stringify({ build_type: source }) });
+      logLine('Pages enabled.', 'ok', logTarget);
+    } catch (e) {
+      if (/already exists/i.test(e.message)) {
+        try {
+          await ghFetch(`/repos/${user}/${repo}/pages`, { method: 'PUT', body: JSON.stringify({ build_type: source }) });
+          logLine(`Pages source updated to ${label}.`, 'ok', logTarget);
+        } catch (e2) {
+          logLine(`Couldn't update Pages source: ${e2.message}`, 'warn', logTarget);
+        }
+      } else {
+        logLine(`Couldn't set Pages source: ${e.message}`, 'warn', logTarget);
+      }
+    }
+  }
+
+  els.setPagesSourceBtn.addEventListener('click', async () => {
     if (!getToken()) { switchView('settings'); return; }
     const user = plain(els.ghUser.value, '');
     const repo = plain(els.repoName.value, '');
-    if (!user || !repo) { logLine('Fill in GitHub username and repo name first.', 'err'); return; }
+    if (!user || !repo) { logLine('Fill in GitHub username and repo name first.', 'err', els.deployLog); return; }
+    els.setPagesSourceBtn.disabled = true;
+    els.setPagesSourceBtn.classList.add('btn-spinner');
+    await applyPagesSource(user, repo, els.deployLog);
+    els.setPagesSourceBtn.disabled = false;
+    els.setPagesSourceBtn.classList.remove('btn-spinner');
+  });
 
-    els.checkLiveBtn.disabled = true;
-    els.checkLiveBtn.classList.add('btn-spinner');
-    logLine('Checking Pages status…');
+  async function checkLiveStatus(btn, logTarget) {
+    if (!getToken()) { switchView('settings'); return; }
+    const user = plain(els.ghUser.value, '');
+    const repo = plain(els.repoName.value, '');
+    if (!user || !repo) { logLine('Fill in GitHub username and repo name first.', 'err', logTarget); return; }
+
+    btn.disabled = true;
+    btn.classList.add('btn-spinner');
+    logLine('Checking Pages status…', null, logTarget);
     try {
       const data = await ghFetch(`/repos/${user}/${repo}/pages`);
-      logLine(`Status: ${data.status || 'unknown'}`);
+      logLine(`Status: ${data.status || 'unknown'}`, null, logTarget);
       if (data.html_url) { currentPagesUrl = data.html_url; renderDeployLinks(); }
       if (data.status === 'built') {
         els.statusSelect.value = 'live';
         refresh();
         saveCurrentProject();
-        logLine('Site is live.', 'ok');
+        logLine('Site is live.', 'ok', logTarget);
       } else {
-        logLine('Not live yet — check again in a bit.', 'warn');
+        logLine('Not live yet — check again in a bit.', 'warn', logTarget);
       }
     } catch (e) {
-      logLine(`Failed: ${e.message}`, 'err');
+      logLine(`Failed: ${e.message}`, 'err', logTarget);
     } finally {
-      els.checkLiveBtn.disabled = false;
-      els.checkLiveBtn.classList.remove('btn-spinner');
+      btn.disabled = false;
+      btn.classList.remove('btn-spinner');
     }
+  }
+  els.checkLiveBtn.addEventListener('click', () => checkLiveStatus(els.checkLiveBtn, els.deployLog));
+  els.checkLiveBtn2.addEventListener('click', () => checkLiveStatus(els.checkLiveBtn2, els.uploadLog));
+
+  /* ================= file upload / publish ================= */
+  function guessPath(filename) {
+    const lower = filename.toLowerCase();
+    if (/^icon[-_]?\d/.test(lower) || /apple-touch/.test(lower) || /maskable/.test(lower) || /favicon/.test(lower)) {
+      return `icons/${filename}`;
+    }
+    return filename;
+  }
+
+  function fullRepoPath(path) {
+    const isRoot = els.siteRoot.value === '(repo root)';
+    const rootPrefix = isRoot ? '' : els.siteRoot.value;
+    return `${rootPrefix}${path.replace(/^\/+/, '')}`;
+  }
+
+  async function checkFileExists(user, repo, path) {
+    try {
+      await ghFetch(`/repos/${user}/${repo}/contents/${path}`);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function statusDot(pf) {
+    if (pf.checking) return '<span class="file-status" title="Checking…">⋯</span>';
+    if (pf.exists === true) return '<span class="file-status" style="color:var(--amber);" title="Already exists in repo">●</span>';
+    if (pf.exists === false) return '<span class="file-status" style="color:var(--teal);" title="New file">●</span>';
+    return '<span class="file-status"></span>';
+  }
+
+  function refreshFileExistence(pf) {
+    const user = plain(els.ghUser.value, '');
+    const repo = plain(els.repoName.value, '');
+    if (!getToken() || !user || !repo) return;
+    pf.checking = true;
+    pf.exists = null;
+    renderFileList();
+    checkFileExists(user, repo, fullRepoPath(pf.path)).then(exists => {
+      pf.checking = false;
+      pf.exists = exists;
+      renderFileList();
+    });
+  }
+
+  function renderFileList() {
+    els.fileListWrap.style.display = pendingFiles.length ? 'block' : 'none';
+    els.fileCount.textContent = String(pendingFiles.length);
+    els.fileList.innerHTML = pendingFiles.map(pf => `
+      <div class="file-row" data-id="${pf.id}">
+        ${statusDot(pf)}
+        <span class="file-name" title="${esc(pf.file.name)}">${esc(pf.file.name)}</span>
+        <input class="file-path" type="text" value="${esc(pf.path)}" spellcheck="false">
+        <button class="file-remove" aria-label="Remove ${esc(pf.file.name)}">&times;</button>
+      </div>
+    `).join('');
+    els.fileList.querySelectorAll('.file-row').forEach(row => {
+      const id = row.dataset.id;
+      const pathInput = row.querySelector('.file-path');
+      pathInput.addEventListener('input', (e) => {
+        const pf = pendingFiles.find(f => f.id === id);
+        if (pf) pf.path = e.target.value.replace(/^\/+/, '');
+      });
+      pathInput.addEventListener('change', () => {
+        const pf = pendingFiles.find(f => f.id === id);
+        if (pf) refreshFileExistence(pf);
+      });
+      row.querySelector('.file-remove').addEventListener('click', () => {
+        pendingFiles = pendingFiles.filter(f => f.id !== id);
+        renderFileList();
+      });
+    });
+  }
+
+  function addFiles(fileArray) {
+    const added = [];
+    Array.from(fileArray).forEach(file => {
+      const pf = { id: 'f' + Date.now() + Math.random().toString(36).slice(2), file, path: guessPath(file.name), exists: null, checking: false };
+      pendingFiles.push(pf);
+      added.push(pf);
+    });
+    renderFileList();
+    added.forEach(refreshFileExistence);
+  }
+
+  els.dropzone.addEventListener('click', () => els.fileInput.click());
+  els.fileInput.addEventListener('change', () => { addFiles(els.fileInput.files); els.fileInput.value = ''; });
+  ['dragover', 'dragenter'].forEach(evt => els.dropzone.addEventListener(evt, (e) => { e.preventDefault(); els.dropzone.classList.add('dragover'); }));
+  ['dragleave', 'dragend'].forEach(evt => els.dropzone.addEventListener(evt, () => els.dropzone.classList.remove('dragover')));
+  els.dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    els.dropzone.classList.remove('dragover');
+    if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+  });
+
+  els.uploadBtn.addEventListener('click', async () => {
+    if (!getToken()) { switchView('settings'); return; }
+    const user = plain(els.ghUser.value, '');
+    const repo = plain(els.repoName.value, '');
+    if (!user || !repo) { els.uploadLog.innerHTML = ''; logLine('Fill in GitHub username and repo name in step 1 first.', 'err', els.uploadLog); return; }
+    if (!pendingFiles.length) { logLine('Select files to upload first.', 'err', els.uploadLog); return; }
+
+    const conflictMode = document.querySelector('input[name="conflictMode"]:checked').value; // 'replace' | 'skip'
+
+    els.uploadLog.innerHTML = '';
+    els.uploadBtn.disabled = true;
+    els.uploadBtn.classList.add('btn-spinner');
+    const originalText = els.uploadBtn.textContent;
+    let failCount = 0;
+    let skipCount = 0;
+
+    try {
+      await ensureRepoNotEmpty(user, repo, els.uploadLog);
+    } catch (e) {
+      logLine(`Couldn't seed initial commit: ${e.message}`, 'err', els.uploadLog);
+    }
+
+    for (const pf of pendingFiles) {
+      const row = els.fileList.querySelector(`.file-row[data-id="${pf.id}"] .file-status`);
+      const fullPath = fullRepoPath(pf.path);
+      if (conflictMode === 'skip' && pf.exists === true) {
+        skipCount++;
+        logLine(`Skipped (already exists): ${fullPath}`, 'warn', els.uploadLog);
+        if (row) row.textContent = '—';
+        continue;
+      }
+      try {
+        const base64 = await readFileAsBase64(pf.file);
+        await upsertFileRaw(user, repo, fullPath, base64, `Add/update ${pf.path} via PWA Organizer`);
+        logLine(`Uploaded ${fullPath}`, 'ok', els.uploadLog);
+        if (row) row.textContent = '✓';
+      } catch (e) {
+        failCount++;
+        logLine(`Failed: ${pf.path} — ${e.message}`, 'err', els.uploadLog);
+        if (row) row.textContent = '✕';
+      }
+    }
+
+    if (failCount === 0) {
+      els.statusSelect.value = 'uploaded';
+      const skipNote = skipCount ? ` (${skipCount} skipped — already existed)` : '';
+      logLine(`Upload complete${skipNote}. The publish workflow should be running now — check live status in ~30-60s.`, 'ok', els.uploadLog);
+      pendingFiles = [];
+      renderFileList();
+    } else {
+      logLine(`${failCount} file(s) failed — fix and retry.`, 'warn', els.uploadLog);
+    }
+    refresh();
+    saveCurrentProject();
+
+    els.uploadBtn.disabled = false;
+    els.uploadBtn.classList.remove('btn-spinner');
+    els.uploadBtn.textContent = originalText;
   });
 
   /* ================= wiring ================= */
@@ -1382,7 +1950,7 @@ jobs:
   els.toggleYamlBtn.addEventListener('click', () => {
     const showing = els.yamlPanel.style.display !== 'none';
     els.yamlPanel.style.display = showing ? 'none' : 'block';
-    els.toggleYamlBtn.textContent = showing ? '+ Generate publish workflow (.yml)' : '− Hide publish workflow (.yml)';
+    els.toggleYamlBtn.textContent = showing ? '+ View publish workflow (.yml)' : '− Hide publish workflow (.yml)';
     if (!showing) renderYaml();
   });
 
@@ -1425,7 +1993,7 @@ jobs:
     refresh();
   });
 
-  [els.appName, els.shortName, els.ghUser, els.repoName, els.iconConcept, els.extraReqs].forEach(el => {
+  [els.appName, els.shortName, els.ghUser, els.repoName, els.iconConcept, els.appConcept, els.extraReqs].forEach(el => {
     el.addEventListener('input', refresh);
   });
   els.siteRoot.addEventListener('change', refresh);
@@ -1444,7 +2012,7 @@ jobs:
     }
     els.copyBtn.textContent = 'Copied ✓';
     els.copyBtn.classList.add('copied');
-    setTimeout(() => { els.copyBtn.textContent = 'Copy details'; els.copyBtn.classList.remove('copied'); }, 1800);
+    setTimeout(() => { els.copyBtn.textContent = 'Copy query for Claude'; els.copyBtn.classList.remove('copied'); }, 1800);
   });
 
   function newApp() {
@@ -1453,6 +2021,7 @@ jobs:
     els.shortName.value = '';
     els.repoName.value = '';
     els.iconConcept.value = '';
+    els.appConcept.value = '';
     els.extraReqs.value = '';
     els.themeColor.value = '#458271';
     els.themeColorPicker.value = '#458271';
@@ -1463,9 +2032,14 @@ jobs:
     document.querySelector('input[name="offline"][value="yes"]').checked = true;
     document.querySelector('input[name="discipline"][value="tdd"]').checked = true;
     checkboxes.forEach(c => c.checked = false);
+    FEATURE_OPTIONS.forEach(f => { const el = document.getElementById(`feat-${f.id}`); if (el) el.checked = false; });
+    updateFeatureCount();
+    pendingFiles = [];
+    renderFileList();
     currentRepoUrl = '';
     currentPagesUrl = '';
     els.deployLog.innerHTML = '';
+    els.uploadLog.innerHTML = '';
     renderDeployLinks();
     refresh();
     renderHistory();
@@ -1500,18 +2074,28 @@ jobs:
     checklist: {
       title: 'Why this checklist',
       body: `<p>Almost every failed first deploy traces back to one of these five things being decided too late — usually after code is already written around a guess.</p>
-             <p>Confirming them upfront means Claude can build the manifest, icons, and file paths correctly on the <strong>first pass</strong>, instead of you troubleshooting a broken icon or a 404 after pushing.</p>`
+             <p>Confirming them upfront means Claude can build the manifest, icons, and file paths correctly on the <strong>first pass</strong>, instead of you troubleshooting a broken icon or a 404 after upload.</p>`
     },
     identity: {
       title: 'Project identity',
       body: `<p>GitHub Pages serves a repo at <strong>username.github.io/repo-name/</strong>, not at the domain root. That subfolder is the source of most path bugs — a manifest or service worker written as if the site lives at "/" will silently fail.</p>
-             <p>The <strong>site root folder</strong> tells Claude which folder in the repo actually gets published, so every relative path it writes (icons, manifest, service worker) lines up with where the browser will actually look.</p>
-             <p><strong>Status</strong> just tracks where this project is in your own process — it doesn't get pasted into Claude's instructions, it's for your Saved tab.</p>`
+             <p>The <strong>site root folder</strong> tells the scaffolder — and Claude — which folder in the repo actually gets published, so every relative path (icons, manifest, service worker) lines up with where the browser will actually look.</p>
+             <p><strong>Status</strong> just tracks where this project is in your own process — it doesn't get pasted into the query, it's for your Saved tab.</p>`
     },
     lookfeel: {
       title: 'Look and feel',
       body: `<p><strong>Theme color</strong> tints the browser chrome and any install/splash screen. <strong>Background color</strong> shows briefly while the app loads, before your CSS paints.</p>
-             <p>The <strong>icon concept</strong> only needs to be one line — Claude generates the full icon set (192, 512, maskable, apple-touch, favicon) as code from it. You never need to prepare or upload image files yourself.</p>`
+             <p>Both feed the manifest.json Claude generates, and the icon set Claude designs to match, in step 2.</p>`
+    },
+    concept: {
+      title: 'App concept & icon',
+      body: `<p>The <strong>app concept</strong> is the one thing Claude actually needs to build the right app — what it does, in your own words. A sentence or two is plenty; more detail here means fewer follow-up questions later.</p>
+             <p>The <strong>icon concept</strong> only needs to be one line — Claude generates the full icon set (192, 512, maskable, apple-touch, favicon) as code from it. You never need to prepare or upload image files yourself, just upload what Claude gives you back in step 3.</p>`
+    },
+    features: {
+      title: 'Features',
+      body: `<p>Check whatever this app actually needs — each one gets turned into a plain-language build requirement in the query, so Claude builds it in on the first pass instead of you asking for it afterward.</p>
+             <p>None of these are required. Leaving everything unchecked just means a minimal build of the core concept above.</p>`
     },
     offline: {
       title: 'Offline behavior',
@@ -1532,9 +2116,19 @@ jobs:
     },
     deploy: {
       title: 'Creating the repo automatically',
-      body: `<p>This uses the GitHub REST API, with the token saved in Settings, to do three things: create the repository, upload the Pages deploy workflow to <code>.github/workflows/</code>, and set the Pages source to GitHub Actions.</p>
-             <p>It's safe to run more than once — if the repo or workflow file already exists, it's left in place rather than duplicated.</p>
-             <p>It does not upload your app's actual code — that's still the part you build with Claude afterward, then push yourself.</p>`
+      body: `<p>This uses the GitHub REST API, with the token saved in Settings, to do four things: create the repository, upload the Pages deploy workflow to <code>.github/workflows/</code>, scaffold the site-root and icons folders with placeholder files (so the empty folders survive git and are ready for your files), and set the Pages source to GitHub Actions.</p>
+             <p>It's safe to run more than once — anything that already exists is left in place rather than duplicated.</p>
+             <p>It does not upload your app's actual code — that's what step 3, Upload &amp; Publish, is for once Claude has given you the files.</p>`
+    },
+    upload: {
+      title: 'Uploading your files',
+      body: `<p>Select every file Claude gave you — index.html, manifest.json, sw.js, icons, anything else — and this tries to guess where each one belongs based on its filename (anything that looks like an icon goes in the <code>icons/</code> folder, everything else goes in the site root).</p>
+             <p>Tap any path to correct it before uploading. The dot next to each row shows whether that path already exists in the repo. Choose "Replace" to overwrite existing files, or "Only add new files" to leave anything that already exists untouched. Each upload is committed straight to the repo's default branch via the GitHub API, which automatically triggers the publish workflow — no separate "run workflow" step needed.</p>`
+    },
+    pagessource: {
+      title: 'Pages source',
+      body: `<p>GitHub Pages can build from two sources: <strong>GitHub Actions</strong> (a workflow builds and deploys the site — what this tool scaffolds by default) or <strong>Deploy from a branch</strong> (Pages serves a folder directly, no workflow involved).</p>
+             <p>Whichever you pick here is applied automatically whenever this tool creates a new repo or you connect to an existing one, and you can re-apply it to the current repo any time with "Set Pages source" on the Build tab.</p>`
     },
     settings: {
       title: 'About the GitHub token',
@@ -1554,9 +2148,98 @@ jobs:
   document.querySelectorAll('.info-btn').forEach(btn => btn.addEventListener('click', () => openModal(btn.dataset.info)));
   els.modalClose.addEventListener('click', closeModal);
   els.modalOverlay.addEventListener('click', (e) => { if (e.target === els.modalOverlay) closeModal(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeRepoPicker(); } });
+
+  /* ---------- existing repo picker ---------- */
+  let repoPickerCache = [];
+
+  function closeRepoPicker() { els.repoPickerOverlay.classList.remove('open'); }
+
+  function renderRepoPickerList(filterText) {
+    const q = (filterText || '').trim().toLowerCase();
+    const list = q ? repoPickerCache.filter(r => r.full_name.toLowerCase().includes(q)) : repoPickerCache;
+    if (!list.length) {
+      els.repoPickerList.innerHTML = `<div class="readiness-note">No repos match.</div>`;
+      return;
+    }
+    els.repoPickerList.innerHTML = list.slice(0, 60).map(r => `
+      <div class="repo-picker-row" data-full-name="${esc(r.full_name)}">
+        <span class="repo-picker-name">${esc(r.name)}</span>
+        <span class="repo-picker-meta">${esc(r.full_name)}${r.private ? ' · private' : ''}${r.has_pages ? ' · Pages enabled' : ''}</span>
+      </div>
+    `).join('');
+    els.repoPickerList.querySelectorAll('.repo-picker-row').forEach(row => {
+      row.addEventListener('click', () => selectExistingRepo(row.dataset.fullName));
+    });
+  }
+
+  async function openRepoPicker() {
+    if (!getToken()) { switchView('settings'); return; }
+    els.repoPickerOverlay.classList.add('open');
+    els.repoPickerSearch.value = '';
+    els.repoPickerList.innerHTML = '';
+    els.repoPickerStatus.textContent = 'Loading your repos…';
+    try {
+      const repos = await ghFetch('/user/repos?per_page=100&sort=updated&affiliation=owner');
+      repoPickerCache = Array.isArray(repos) ? repos : [];
+      els.repoPickerStatus.textContent = `${repoPickerCache.length} repo${repoPickerCache.length === 1 ? '' : 's'} — tap one to connect.`;
+      renderRepoPickerList('');
+    } catch (e) {
+      els.repoPickerStatus.textContent = `Couldn't load repos: ${e.message}`;
+    }
+  }
+
+  async function detectSiteRoot(user, repo) {
+    const candidates = ['www/', 'docs/', '(repo root)'];
+    for (const candidate of candidates) {
+      const path = candidate === '(repo root)' ? 'index.html' : `${candidate}index.html`;
+      try {
+        await ghFetch(`/repos/${user}/${repo}/contents/${path}`);
+        return candidate;
+      } catch (e) { /* not found, try next */ }
+    }
+    return 'www/'; // default guess if nothing found yet
+  }
+
+  async function selectExistingRepo(fullName) {
+    const [user, repo] = fullName.split('/');
+    closeRepoPicker();
+    currentProjectId = null;
+    els.ghUser.value = user;
+    els.repoName.value = repo;
+    if (!plain(els.appName.value, '')) els.appName.value = repo;
+    currentRepoUrl = `https://github.com/${fullName}`;
+    els.deployLog.innerHTML = '';
+    els.uploadLog.innerHTML = '';
+    logLine(`Detecting site root for ${fullName}…`, null, els.uploadLog);
+    const detected = await detectSiteRoot(user, repo);
+    els.siteRoot.value = detected;
+    logLine(`Connected to ${fullName} — site root set to ${detected === '(repo root)' ? 'repo root' : detected}. Double-check this before uploading.`, 'ok', els.uploadLog);
+    try {
+      await ensureRepoNotEmpty(user, repo, els.uploadLog);
+    } catch (e) {
+      logLine(`Couldn't check/seed initial commit: ${e.message}`, 'warn', els.uploadLog);
+    }
+    if (els.statusSelect.value === 'planning') els.statusSelect.value = 'repo';
+    renderDeployLinks();
+    refresh();
+    saveCurrentProject();
+    renderHistory();
+    switchView('build');
+    goToStep(8);
+  }
+
+  els.useExistingRepoBtn.addEventListener('click', openRepoPicker);
+  els.startNewRepoBtn.addEventListener('click', () => goToStep(1));
+  els.startExistingRepoBtn.addEventListener('click', openRepoPicker);
+  els.repoPickerClose.addEventListener('click', closeRepoPicker);
+  els.repoPickerOverlay.addEventListener('click', (e) => { if (e.target === els.repoPickerOverlay) closeRepoPicker(); });
+  els.repoPickerSearch.addEventListener('input', () => renderRepoPickerList(els.repoPickerSearch.value));
 
   /* ---------- init ---------- */
+  renderFeatureList();
+  updateFeatureCount();
+  renderFileList();
   refresh();
   renderHistory();
   renderDeployLinks();
